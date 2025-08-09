@@ -160,58 +160,43 @@
     </div>
 
     <!-- Düzenleme Modal -->
-    <div id="editModal" class="stv-modal" style="display: none;">
-        <div class="stv-modal-content max-w-4xl">
-            <h2 class="text-4xl font-bold text-yellow-400 mb-6" style="text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);">
-                <i class="fas fa-edit mr-3"></i>
-                Hileci Düzenle
-            </h2>
-
-            <form id="editForm">
-                <div class="stv-admin-form-grid">
-                    <div class="stv-form-group">
-                        <label class="stv-form-label">Oyuncu Adı *</label>
-                        <input type="text" id="editPlayerName" class="stv-input-form" placeholder="Oyuncu adını girin..." required />
-                    </div>
-                    <div class="stv-form-group">
-                        <label class="stv-form-label">Steam ID *</label>
-                        <input type="text" id="editSteamId" class="stv-input-form" placeholder="Steam ID girin..." required />
-                    </div>
-                    <div class="stv-form-group">
-                        <label class="stv-form-label">Steam Profil</label>
-                        <input type="url" id="editSteamProfile" class="stv-input-form" placeholder="https://steamcommunity.com/..." />
-                    </div>
-                    <div class="stv-form-group">
-                        <label class="stv-form-label">Son Sunucu *</label>
-                        <input type="text" id="editServerName" class="stv-input-form" placeholder="Sunucu adını girin..." required />
-                    </div>
-                    <div class="stv-form-group">
-                        <label class="stv-form-label">Tespit Sayısı</label>
-                        <input type="number" id="editDetectionCount" min="1" value="1" class="stv-input-form" />
-                    </div>
-                    <div class="stv-form-group">
-                        <label class="stv-form-label">Hile Türleri</label>
-                        <input type="text" id="editCheatTypes" class="stv-input-form" placeholder="örn: Aimbot, Wallhack, Speed" />
-                    </div>
-                    <div class="stv-form-group" style="grid-column: 1 / -1;">
-                        <label class="stv-form-label">Fungun Rapor Linki</label>
-                        <input type="url" id="editFungunReport" class="stv-input-form" placeholder="https://..." />
-                    </div>
+    <div id="adminPanelModal" class="stv-modal" style="display: none;">
+    <div class="stv-modal-content max-w-4xl">
+        <h2 class="text-4xl font-bold text-red-400 mb-6"><i class="fas fa-user-plus mr-3"></i>Yeni Hileci Ekle</h2>
+        <form id="cheaterForm">
+            <div class="stv-admin-form-grid">
+                <div class="stv-form-group">
+                    <label class="stv-form-label">Oyuncu Adı *</label>
+                    <input type="text" id="playerName" class="stv-input-form" required />
                 </div>
-
-                <div class="flex gap-4 justify-center flex-wrap">
-                    <button type="submit" id="editSubmitBtn" class="stv-btn-primary px-8 py-4 text-base flex items-center gap-2">
-                        <i class="fas fa-save"></i>
-                        Kaydet
-                    </button>
-                    <button type="button" id="editCancelBtn" class="stv-btn-secondary px-8 py-4 text-base flex items-center gap-2">
-                        <i class="fas fa-times"></i>
-                        İptal
-                    </button>
+                <div class="stv-form-group">
+                    <label class="stv-form-label">Steam ID *</label>
+                    <input type="text" id="steamId" class="stv-input-form" required />
                 </div>
-            </form>
-        </div>
+                <div class="stv-form-group">
+                    <label class="stv-form-label">Steam Profil</label>
+                    <input type="url" id="steamProfile" class="stv-input-form" />
+                </div>
+                <div class="stv-form-group">
+                    <label class="stv-form-label">Son Sunucu *</label>
+                    <input type="text" id="serverName" class="stv-input-form" required />
+                </div>
+                <div class="stv-form-group">
+                    <label class="stv-form-label">Hile Türleri</label>
+                    <input type="text" id="cheatTypes" class="stv-input-form" placeholder="Virgülle ayırın" />
+                </div>
+                <div class="stv-form-group" style="grid-column: 1 / -1;">
+                    <label class="stv-form-label">Fungun Rapor Link(leri)</label>
+                    <textarea id="fungunReports" class="stv-input-form" placeholder="Birden fazla linki virgülle ayırarak girin..."></textarea>
+                </div>
+            </div>
+            <div class="flex gap-4 justify-center flex-wrap mt-6">
+                <button type="submit" class="stv-btn-primary px-8 py-4"><i class="fas fa-plus mr-2"></i>Hileci Ekle</button>
+                <button type="button" id="adminCloseBtn" class="stv-btn-secondary px-8 py-4"><i class="fas fa-times mr-2"></i>Kapat</button>
+            </div>
+        </form>
     </div>
+</div>
 
     <!-- Geçmiş Modal -->
     <div id="historyModal" class="stv-modal" style="display: none;">
@@ -427,4 +412,5 @@
     <script src="script.js"></script>
 </body>
 </html>
+
 
