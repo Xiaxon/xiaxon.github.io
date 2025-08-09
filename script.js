@@ -1,51 +1,32 @@
-// script.js - Final Sürüm (Veritabanı Destekli & Temizlenmiş)
+// script.js - Final Sürüm (Hata Yönetimli)
 
-// Global değişkenler
 let cheaters = [];
 let isLoggedIn = false;
 let hasVisited = localStorage.getItem('stvVisited') === 'true';
 let sortColumn = null;
 let sortDirection = 'asc';
-let editingIndex = -1;
 let socket = null;
-
-// Admin şifreleri
 const ADMIN_PASSWORDS = ['stv2024admin', 'ljupka2024'];
-
-// CANLI WebSocket Sunucu Adresi
 const WS_URL = 'wss://stv-backend.onrender.com';
 
-// Toast notification fonksiyonu
 function showToast(message, type = 'info') {
     const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
+    toast.style.cssText = `position: fixed; top: 20px; right: 20px; background: ${type === 'error' ? '#dc2626' : type === 'success' ? '#16a34a' : '#3b82f6'}; color: white; padding: 12px 20px; border-radius: 8px; z-index: 10000; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transform: translateX(100%); transition: transform 0.3s ease;`;
     toast.textContent = message;
-    toast.style.cssText = `
-        position: fixed; top: 20px; right: 20px;
-        background: ${type === 'error' ? '#dc2626' : type === 'success' ? '#16a34a' : '#3b82f6'};
-        color: white; padding: 12px 20px; border-radius: 8px; z-index: 10000;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3); transform: translateX(100%);
-        transition: transform 0.3s ease;
-    `;
     document.body.appendChild(toast);
     setTimeout(() => { toast.style.transform = 'translateX(0)'; }, 100);
     setTimeout(() => {
         toast.style.transform = 'translateX(100%)';
         setTimeout(() => { document.body.removeChild(toast); }, 300);
-    }, 3000);
+    }, 4000);
 }
 
-// Sayfa yüklendiğinde
 document.addEventListener('DOMContentLoaded', function() {
     setupEventListeners();
     connectWebSocket();
-    updateLastUpdateTime();
-    if (!hasVisited) {
-        showWelcomeModal();
-    }
+    if (!hasVisited) showWelcomeModal();
 });
 
-// Event listener'ları kurma
 function setupEventListeners() {
     document.getElementById('closeModalBtn').addEventListener('click', closeWelcomeModal);
     document.getElementById('adminBtn').addEventListener('click', toggleAdminPanel);
@@ -53,19 +34,16 @@ function setupEventListeners() {
     document.getElementById('adminCancelBtn').addEventListener('click', closeAdminLoginModal);
     document.getElementById('adminCloseBtn').addEventListener('click', closeAdminPanel);
     document.getElementById('cheaterForm').addEventListener('submit', handleSubmit);
-    document.getElementById('confirmYes').addEventListener('click', handleConfirmYes);
-    document.getElementById('confirmNo').addEventListener('click', closeConfirmModal);
-    document.getElementById('searchInput').addEventListener('input', handleSearch);
-    document.getElementById('adminPassword').addEventListener('keypress', e => e.key === 'Enter' && handleAdminLogin());
+    document.getElementById('searchInput').addEventListener('input', updateDisplay);
+    document.querySelectorAll('.stv-table-header[onclick]').forEach(th =>
+        th.addEventListener('click', () => sortTable(th.getAttribute('onclick').match(/'([^']+)'/)[1]))
+    );
 }
 
-// Son güncelleme zamanını güncelle
 function updateLastUpdateTime() {
-    const now = new Date();
-    document.getElementById('lastUpdateTime').textContent = now.toLocaleString('tr-TR');
+    document.getElementById('lastUpdateTime').textContent = new Date().toLocaleString('tr-TR');
 }
 
-// Hoşgeldin modalı
 function showWelcomeModal() { document.getElementById('welcomeModal').style.display = 'flex'; }
 function closeWelcomeModal() {
     document.getElementById('welcomeModal').style.display = 'none';
@@ -73,28 +51,16 @@ function closeWelcomeModal() {
     hasVisited = true;
 }
 
-// Admin paneli
 function toggleAdminPanel() { isLoggedIn ? showAdminPanel() : showAdminLoginModal(); }
-function showAdminLoginModal() {
-    document.getElementById('adminLoginModal').style.display = 'flex';
-    document.getElementById('adminPassword').focus();
-}
-function closeAdminLoginModal() {
-    document.getElementById('adminLoginModal').style.display = 'none';
-    document.getElementById('adminPassword').value = '';
-}
+function showAdminLoginModal() { document.getElementById('adminLoginModal').style.display = 'flex'; document.getElementById('adminPassword').focus(); }
+function closeAdminLoginModal() { document.getElementById('adminLoginModal').style.display = 'none'; document.getElementById('adminPassword').value = ''; }
 function showAdminPanel() {
     document.getElementById('adminPanelModal').style.display = 'flex';
-    updateCheaterCount();
-    clearForm();
+    document.getElementById('cheaterForm').reset();
     document.getElementById('submitBtn').innerHTML = '<i class="fas fa-plus"></i> Hileci Ekle';
 }
-function closeAdminPanel() {
-    document.getElementById('adminPanelModal').style.display = 'none';
-    clearForm();
-}
+function closeAdminPanel() { document.getElementById('adminPanelModal').style.display = 'none'; }
 
-// Admin giriş
 function handleAdminLogin() {
     const password = document.getElementById('adminPassword').value;
     if (ADMIN_PASSWORDS.includes(password)) {
@@ -107,24 +73,12 @@ function handleAdminLogin() {
     }
 }
 
-// Admin buton güncelle
 function updateAdminButton() {
-    const adminBtn = document.getElementById('adminBtn');
-    adminBtn.innerHTML = `<i class="fas fa-user-shield text-lg"></i> ${isLoggedIn ? 'Admin ✓' : 'Admin'}`;
-    const actionsHeader = document.getElementById('actionsHeader');
-    if (isLoggedIn) {
-        actionsHeader.style.display = 'table-cell';
-    } else {
-        actionsHeader.style.display = 'none';
-    }
+    document.getElementById('adminBtn').innerHTML = `<i class="fas fa-user-shield text-lg"></i> ${isLoggedIn ? 'Admin ✓' : 'Admin'}`;
+    document.getElementById('actionsHeader').style.display = isLoggedIn ? 'table-cell' : 'none';
     updateDisplay();
 }
 
-// Form işlemleri
-function updateCheaterCount() { document.getElementById('cheaterCount').textContent = cheaters.length; }
-function clearForm() { document.getElementById('cheaterForm').reset(); }
-
-// Form gönder
 function handleSubmit(e) {
     e.preventDefault();
     const playerName = document.getElementById('playerName').value.trim();
@@ -136,40 +90,20 @@ function handleSubmit(e) {
     const cheaterData = {
         playerName, steamId,
         steamProfile: document.getElementById('steamProfile').value.trim(),
-        serverName: document.getElementById('serverName').value.trim(),
+        serverName: document.getElementById('serverName').value.trim() || "Bilinmiyor",
         detectionCount: parseInt(document.getElementById('detectionCount').value) || 1,
         cheatTypes: document.getElementById('cheatTypes').value.split(',').map(t => t.trim()).filter(Boolean),
         fungunReport: document.getElementById('fungunReport').value.trim()
     };
-    const payload = { type: 'CHEATER_ADDED', data: cheaterData };
     if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify(payload));
+        socket.send(JSON.stringify({ type: 'CHEATER_ADDED', data: cheaterData }));
         showToast('Hileci ekleniyor...', 'info');
-        clearForm();
+        document.getElementById('cheaterForm').reset();
     } else {
         showToast('Sunucu bağlantısı yok!', 'error');
     }
 }
 
-// Onay modalı
-function showConfirmModal(message, callback) {
-    document.getElementById('confirmMessage').textContent = message;
-    document.getElementById('confirmModal').style.display = 'flex';
-    window.confirmCallback = callback;
-}
-function closeConfirmModal() {
-    document.getElementById('confirmModal').style.display = 'none';
-    window.confirmCallback = null;
-}
-function handleConfirmYes() {
-    if (window.confirmCallback) {
-        window.confirmCallback();
-    }
-    closeConfirmModal();
-}
-
-// Arama ve Sıralama
-function handleSearch() { updateDisplay(); }
 function sortTable(column) {
     if (sortColumn === column) {
         sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
@@ -180,31 +114,18 @@ function sortTable(column) {
     updateDisplay();
 }
 
-// WebSocket Bağlantısı
 function connectWebSocket() {
     showConnectionStatus('Sunucuya bağlanılıyor...', 'info');
     socket = new WebSocket(WS_URL);
-
-    socket.onopen = () => {
-        console.log('WebSocket connected');
-        hideConnectionStatus();
-    };
-
+    socket.onopen = () => { console.log('WebSocket connected'); hideConnectionStatus(); };
     socket.onmessage = event => handleWebSocketMessage(JSON.parse(event.data));
-
     socket.onclose = () => {
-        console.log('WebSocket disconnected');
         showConnectionStatus('Bağlantı kesildi, 3 saniyede yeniden deneniyor...', 'warning');
         setTimeout(connectWebSocket, 3000);
     };
-
-    socket.onerror = (error) => {
-        console.error('WebSocket error:', error);
-        showConnectionStatus('Bağlantı hatası!', 'error');
-    };
+    socket.onerror = (error) => { showConnectionStatus('Bağlantı hatası!', 'error'); };
 }
 
-// Bağlantı durumu
 function showConnectionStatus(message, type) {
     const statusDiv = document.getElementById('connectionStatus');
     statusDiv.style.display = 'block';
@@ -212,7 +133,6 @@ function showConnectionStatus(message, type) {
 }
 function hideConnectionStatus() { document.getElementById('connectionStatus').style.display = 'none'; }
 
-// WebSocket Mesaj İşleme
 function handleWebSocketMessage(message) {
     console.log('Mesaj alındı:', message.type);
     switch (message.type) {
@@ -223,28 +143,26 @@ function handleWebSocketMessage(message) {
             cheaters.push(message.data);
             showToast(`Yeni hileci eklendi: ${message.data.playerName}`, 'success');
             break;
+        case 'ERROR_OCCURRED': // YENİ HATA MESAJI KONTROLÜ
+            showToast(message.data.message, 'error');
+            break;
     }
-    updateDisplay();
-    updateCheaterCount();
+    document.getElementById('cheaterCount').textContent = cheaters.length;
     updateLastUpdateTime();
+    updateDisplay();
 }
 
-// Ekranı Güncelle
 function updateDisplay() {
     const tableBody = document.getElementById('cheaterTableBody');
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-    
-    let filteredCheaters = cheaters.filter(c =>
-        c.playerName.toLowerCase().includes(searchTerm) ||
-        c.steamId.toLowerCase().includes(searchTerm)
-    );
+    let filteredCheaters = cheaters.filter(c => c.playerName.toLowerCase().includes(searchTerm) || c.steamId.toLowerCase().includes(searchTerm));
 
     if (sortColumn) {
         filteredCheaters.sort((a, b) => {
-            const aVal = a[sortColumn] || '';
-            const bVal = b[sortColumn] || '';
-            if (sortDirection === 'asc') return aVal > bVal ? 1 : -1;
-            return aVal < bVal ? 1 : -1;
+            const aVal = ('' + (a[sortColumn] || '')).toLowerCase();
+            const bVal = ('' + (b[sortColumn] || '')).toLowerCase();
+            if (sortDirection === 'asc') return aVal.localeCompare(bVal);
+            return bVal.localeCompare(aVal);
         });
     }
 
@@ -255,11 +173,11 @@ function updateDisplay() {
             <tr class="stv-table-row relative">
                 <td class="p-3">${cheater.playerName}</td>
                 <td class="p-3"><code>${cheater.steamId}</code></td>
-                <td class="p-3">${cheater.steamProfile ? `<a href="${cheater.steamProfile}" target="_blank" class="text-blue-400 hover:underline">Profil</a>` : 'Yok'}</td>
+                <td class="p-3">${cheater.steamProfile ? `<a href="${cheater.steamProfile}" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">Profil</a>` : 'Yok'}</td>
                 <td class="p-3">${cheater.serverName}</td>
                 <td class="p-3"><span class="stv-detection-count">${cheater.detectionCount}</span></td>
-                <td class="p-3">${cheater.cheatTypes.map(type => `<span class="stv-cheat-type">${type}</span>`).join('')}</td>
-                <td class="p-3">${cheater.fungunReport ? `<a href="${cheater.fungunReport}" target="_blank" class="text-red-400 hover:underline">Rapor</a>` : 'Yok'}</td>
+                <td class="p-3">${(cheater.cheatTypes || []).map(type => `<span class="stv-cheat-type">${type}</span>`).join('')}</td>
+                <td class="p-3">${cheater.fungunReport ? `<a href="${cheater.fungunReport}" target="_blank" rel="noopener noreferrer" class="text-red-400 hover:underline">Rapor</a>` : 'Yok'}</td>
                 ${isLoggedIn ? `<td class="p-3"></td>` : ''}
             </tr>
         `).join('');
