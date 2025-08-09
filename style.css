@@ -56,21 +56,24 @@ textarea.stv-input-form { min-height: 80px; resize: vertical; }
 .stv-quick-add-btn { position: static; background: #059669; width: 44px; height: 44px; padding: 0; justify-content: center; border-radius: 50%; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.4); }
 .stv-quick-add-btn:hover { transform: scale(1.1); }
 
-/* Ana Başlık */
-/* Ana Başlık */
+/* Ana Başlık - Düzeltilmiş Sürüm (Tam Ortalamak için) */
 .main-header {
-    text-align: center;
+    display: flex;          /* Flexbox'ı aktif et */
+    flex-direction: column; /* Öğeleri alt alta diz */
+    align-items: center;    /* Yatayda tam ortala */
+    text-align: center;     /* Metinlerin de ortalandığından emin ol */
     margin-bottom: 2rem;
     padding-bottom: 1.25rem;
     border-bottom: 2px solid #4b0000;
 }
+
 .main-header h1 {
     text-shadow: 2px 2px 4px rgba(255, 68, 68, 0.3);
 }
+
 .main-header p {
-    max-width: 56rem; /* max-w-4xl */
-    margin-left: auto;
-    margin-right: auto;
+    max-width: 56rem;       /* Genişliğin çok artmasını engelle */
+    margin-top: 0.75rem;    /* Başlık ile arasına boşluk koy */
 }
 
 /* Tablo Stilleri */
