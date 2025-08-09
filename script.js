@@ -8,7 +8,7 @@ let socket = null;
 let editingCheater = null;
 let confirmCallback = null;
 
-const ADMIN_PASSWORDS = ['1234', 'ljupka2024'];
+const ADMIN_PASSWORDS = ['stv2024admin', 'ljupka2024'];
 const WS_URL = 'wss://stv-backend.onrender.com'; // Canlı sunucu adresiniz
 
 // --- Sayfa Yüklendiğinde Başlat ---
@@ -127,7 +127,7 @@ function showEditModal(cheaterId) {
     document.getElementById('editSteamProfile').value = editingCheater.steamProfile || '';
     document.getElementById('editServerName').value = editingCheater.serverName;
     document.getElementById('editDetectionCount').value = editingCheater.detectionCount;
-    document.getElementById('editCheatTypes').value = editingCheater.cheatTypes.join(', ');
+    document.getElementById('editCheatTypes').value = (editingCheater.cheatTypes || []).join(', ');
     document.getElementById('editFungunReports').value = (editingCheater.fungunReports || []).join(', ');
     document.getElementById('editModal').style.display = 'flex';
 }
@@ -162,23 +162,23 @@ function togglePlayerHistory(rowElement) {
         icon?.classList.remove('rotated');
     } else {
         const cheater = cheaters.find(c => c._id === cheaterId);
-        if (!cheater) return;
+        if (!cheater || !cheater.history || cheater.history.length === 0) {
+             showToast('Bu oyuncu için geçmiş tespit kaydı bulunmuyor.', 'info');
+             return;
+        };
         
         icon?.classList.add('rotated');
         const historyRow = document.createElement('tr');
         historyRow.id = `history-${cheaterId}`;
         historyRow.className = 'stv-history-row';
         const colSpan = isLoggedIn ? 8 : 7;
-        let historyContent = '<div class="stv-history-item" style="grid-template-columns: 1fr; text-align: center;">Henüz geçmiş tarama kaydı yok.</div>';
         
-        if (cheater.history && cheater.history.length > 0) {
-            historyContent = cheater.history.map(item => `
-                <div class="stv-history-item">
-                    <span><i class="fas fa-calendar-alt mr-2"></i>${new Date(item.date).toLocaleString('tr-TR')}</span>
-                    <span><i class="fas fa-server mr-2"></i>${item.serverName}</span>
-                </div>
-            `).join('');
-        }
+        const historyContent = cheater.history.map(item => `
+            <div class="stv-history-item">
+                <span class="stv-history-date"><i class="fas fa-calendar-alt mr-2"></i>${new Date(item.date).toLocaleString('tr-TR')}</span>
+                <span class="stv-history-server"><i class="fas fa-server mr-2"></i>${item.serverName}</span>
+            </div>
+        `).join('');
 
         historyRow.innerHTML = `
             <td colspan="${colSpan}">
@@ -200,7 +200,7 @@ function closeWelcomeModal() {
 }
 function toggleAdminPanel() { isLoggedIn ? showAdminPanel() : showAdminLoginModal(); }
 function showAdminLoginModal() { document.getElementById('adminLoginModal').style.display = 'flex'; }
-function closeAdminLoginModal() { document.getElementById('adminLoginModal').style.display = 'none'; }
+function closeAdminLoginModal() { document.getElementById('adminLoginModal').style.display = 'none'; document.getElementById('adminPassword').value = ''; }
 function showAdminPanel() { document.getElementById('adminPanelModal').style.display = 'flex'; document.getElementById('cheaterForm').reset(); }
 function closeAdminPanel() { document.getElementById('adminPanelModal').style.display = 'none'; }
 function closeEditModal() { document.getElementById('editModal').style.display = 'none'; editingCheater = null; }
@@ -232,19 +232,19 @@ function updateAdminUI() {
 // --- Arayüz Güncelleme ve Yardımcı Fonksiyonlar ---
 function showToast(message, type = 'info') {
     const toast = document.createElement('div');
-    toast.style.cssText = `position: fixed; top: 20px; right: 20px; background: ${type === 'error' ? '#dc2626' : type === 'success' ? '#16a34a' : '#3b82f6'}; color: white; padding: 12px 20px; border-radius: 8px; z-index: 10000; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transform: translateX(100%); transition: transform 0.3s ease;`;
+    toast.style.cssText = `position: fixed; top: 20px; right: 20px; background: ${type === 'error' ? '#b91c1c' : type === 'success' ? '#16a34a' : '#2563eb'}; color: white; padding: 14px 22px; border-radius: 8px; z-index: 10001; font-weight: 500; box-shadow: 0 5px 15px rgba(0,0,0,0.3); transform: translateX(120%); transition: transform 0.4s ease;`;
     toast.textContent = message;
     document.body.appendChild(toast);
     setTimeout(() => { toast.style.transform = 'translateX(0)'; }, 100);
     setTimeout(() => {
-        toast.style.transform = 'translateX(100%)';
-        setTimeout(() => { document.body.removeChild(toast); }, 300);
-    }, 3000);
+        toast.style.transform = 'translateX(120%)';
+        setTimeout(() => { document.body.removeChild(toast); }, 400);
+    }, 4000);
 }
-function showConnectionStatus(isError, message = '') {
+function showConnectionStatus(isConnecting, message = '') {
     const statusDiv = document.getElementById('connectionStatus');
-    statusDiv.style.display = isError ? 'block' : 'none';
-    if (isError) statusDiv.innerHTML = `<div class="inline-flex items-center gap-2 p-2 rounded-lg bg-yellow-900/20 text-yellow-400">${message}</div>`;
+    statusDiv.style.display = isConnecting ? 'block' : 'none';
+    if (isConnecting) statusDiv.innerHTML = `<div class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-yellow-900/20 text-yellow-400 border border-yellow-500/30">${message}</div>`;
 }
 function updateLastUpdateTime() { document.getElementById('lastUpdateTime').textContent = new Date().toLocaleString('tr-TR'); }
 
@@ -264,20 +264,20 @@ function updateDisplay() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
     
     let filteredCheaters = cheaters.filter(c =>
-        c.playerName.toLowerCase().includes(searchTerm) ||
-        c.steamId.toLowerCase().includes(searchTerm)
+        (c.playerName && c.playerName.toLowerCase().includes(searchTerm)) ||
+        (c.steamId && c.steamId.toLowerCase().includes(searchTerm))
     );
 
     filteredCheaters.sort((a, b) => {
         const aVal = a[sortColumn] || '';
         const bVal = b[sortColumn] || '';
-        if (sortDirection === 'asc') return String(aVal).localeCompare(String(bVal), undefined, {numeric: true});
-        return String(bVal).localeCompare(String(aVal), undefined, {numeric: true});
+        const comparison = String(aVal).localeCompare(String(bVal), undefined, {numeric: true});
+        return sortDirection === 'asc' ? comparison : -comparison;
     });
 
     const colSpan = isLoggedIn ? 8 : 7;
     if (filteredCheaters.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="${colSpan}" class="text-center py-10">Kayıt bulunamadı.</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="${colSpan}" class="text-center py-10 text-gray-400">Kayıt bulunamadı.</td></tr>`;
     } else {
         tableBody.innerHTML = filteredCheaters.map(cheater => `
             <tr class="stv-table-row" data-id="${cheater._id}">
@@ -291,7 +291,7 @@ function updateDisplay() {
                 <td class="p-3">${cheater.steamProfile ? `<a href="${cheater.steamProfile}" target="_blank" class="text-blue-400 hover:underline">Profil</a>` : 'Yok'}</td>
                 <td class="p-3">${cheater.serverName}</td>
                 <td class="p-3"><span class="stv-detection-count">${cheater.detectionCount}</span></td>
-                <td class="p-3">${cheater.cheatTypes.map(type => `<span class="stv-cheat-type">${type}</span>`).join('')}</td>
+                <td class="p-3">${(cheater.cheatTypes || []).map(type => `<span class="stv-cheat-type">${type}</span>`).join('')}</td>
                 <td class="p-3">${(cheater.fungunReports || []).map(link => `<a href="${link}" target="_blank" class="text-red-400 hover:underline block">Rapor</a>`).join('') || 'Yok'}</td>
                 ${isLoggedIn ? `
                     <td class="p-3">
