@@ -289,21 +289,28 @@
     </div>
 
     <!-- Sosyal Medya Butonları -->
-    <a href="https://discord.gg/Gasyz7nTnt" target="_blank" rel="noopener noreferrer" class="stv-social-btn stv-discord-btn">
-        <i class="fab fa-discord text-lg"></i>
-        Discord
-    </a>
-    <div class="stv-admin-info">
-        ADMİN: LJUPKA - XİAXON
+    <div class="social-buttons-container">
+        <a href="https://discord.gg/Gasyz7nTnt" target="_blank" rel="noopener noreferrer" class="stv-social-btn stv-discord-btn">
+            <i class="fab fa-discord text-lg"></i>
+            Discord
+        </a>
+        <div class="stv-admin-info">
+            ADMİN: LJUPKA - XİAXON
+        </div>
+        <a href="https://www.youtube.com/@xiaxonn" target="_blank" rel="noopener noreferrer" class="stv-social-btn stv-youtube-btn">
+            <i class="fab fa-youtube text-lg"></i>
+            Xiaxon
+        </a>
+        <div class="admin-actions-container">
+            <button id="adminBtn" class="stv-social-btn stv-admin-btn">
+                <i class="fas fa-user-shield text-lg"></i>
+                Admin
+            </button>
+            <button id="quickAddBtn" class="stv-social-btn stv-quick-add-btn" style="display: none;" title="Hızlı Ekle">
+                <i class="fas fa-plus"></i>
+            </button>
+        </div>
     </div>
-    <a href="https://www.youtube.com/@xiaxonn" target="_blank" rel="noopener noreferrer" class="stv-social-btn stv-youtube-btn">
-        <i class="fab fa-youtube text-lg"></i>
-        Xiaxon
-    </a>
-    <button id="adminBtn" class="stv-social-btn stv-admin-btn">
-        <i class="fas fa-user-shield text-lg"></i>
-        Admin
-    </button>
 
     <div class="min-h-screen stv-gradient-bg">
         <div class="container mx-auto px-5 py-5 max-w-7xl">
@@ -346,12 +353,12 @@
                                     <i id="sort-playerName" class="fas fa-sort ml-2" style="opacity: 0.5;"></i>
                                 </th>
                                 <th class="stv-table-header cursor-pointer" onclick="sortTable('steamId')">
-                                    <i class="fas fa-id-card mr-2"></i>
+                                    <i class="fab fa-steam mr-2"></i>
                                     Steam ID
                                     <i id="sort-steamId" class="fas fa-sort ml-2" style="opacity: 0.5;"></i>
                                 </th>
                                 <th class="stv-table-header">
-                                    <i class="fas fa-external-link-alt mr-2"></i>
+                                    <i class="fas fa-link mr-2"></i>
                                     Steam Profil
                                 </th>
                                 <th class="stv-table-header cursor-pointer" onclick="sortTable('serverName')">
@@ -360,7 +367,7 @@
                                     <i id="sort-serverName" class="fas fa-sort ml-2" style="opacity: 0.5;"></i>
                                 </th>
                                 <th class="stv-table-header cursor-pointer" onclick="sortTable('detectionCount')">
-                                    <i class="fas fa-eye mr-2"></i>
+                                    <i class="fas fa-crosshairs mr-2"></i>
                                     Tespit Sayısı
                                     <i id="sort-detectionCount" class="fas fa-sort ml-2" style="opacity: 0.5;"></i>
                                 </th>
@@ -380,9 +387,9 @@
                         </thead>
                         <tbody id="cheaterTableBody">
                             <tr>
-                                <td colspan="8" class="text-center py-10 text-gray-400">
+                                <td colspan="8" class="text-center py-10">
                                     <i class="fas fa-spinner fa-spin mr-2"></i>
-                                    Veriler yükleniyor...
+                                    Yükleniyor...
                                 </td>
                             </tr>
                         </tbody>
@@ -390,12 +397,29 @@
                 </div>
             </div>
 
-            <!-- Son güncelleme zamanı -->
-            <div class="text-center mt-6">
-                <p class="text-gray-400 text-sm">
-                    <i class="fas fa-clock mr-2"></i>
-                    Son güncelleme: <span id="lastUpdateTime">-</span>
-                </p>
+            <!-- İstatistikler -->
+            <div class="mt-8 text-center">
+                <div class="stv-card p-6">
+                    <div class="flex flex-wrap items-center justify-center gap-6">
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-red-400 mb-2">
+                                <span id="cheaterCountDisplay">0</span>
+                            </div>
+                            <div class="text-gray-300 text-sm">
+                                Toplam Hileci
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-lg text-gray-400 mb-2">
+                                <i class="fas fa-clock mr-2"></i>
+                                Son Güncelleme
+                            </div>
+                            <div class="text-gray-300 text-sm" id="lastUpdateTime">
+                                -
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
