@@ -8,7 +8,7 @@ let socket = null;
 let editingCheater = null;
 let confirmCallback = null;
 
-const ADMIN_PASSWORDS = ['stv2024admin', 'ljupka2024'];
+const ADMIN_PASSWORDS = ['123', 'ljupka2024'];
 const WS_URL = 'wss://stv-backend.onrender.com'; // Canlı sunucu adresiniz
 
 // --- Sayfa Yüklendiğinde Başlat ---
@@ -93,7 +93,7 @@ function handleSubmit(e) {
         steamProfile: document.getElementById('steamProfile').value.trim(),
         serverName: document.getElementById('serverName').value.trim() || "Bilinmiyor",
         cheatTypes: document.getElementById('cheatTypes').value.split(',').map(t => t.trim()).filter(Boolean),
-        fungunReports: document.getElementById('fungunReports').value.split(',').map(link => link.trim()).filter(Boolean)
+        fungunReports: document.getElementById('fungunReport').value.split(',').map(link => link.trim()).filter(Boolean)
     };
     if (!cheaterData.playerName || !cheaterData.steamId) {
         showToast('Oyuncu Adı ve Steam ID zorunludur!', 'error');
@@ -113,7 +113,7 @@ function handleEditSubmit(e) {
         serverName: document.getElementById('editServerName').value.trim() || "Bilinmiyor",
         detectionCount: parseInt(document.getElementById('editDetectionCount').value),
         cheatTypes: document.getElementById('editCheatTypes').value.split(',').map(t => t.trim()).filter(Boolean),
-        fungunReports: document.getElementById('editFungunReports').value.split(',').map(link => link.trim()).filter(Boolean)
+        fungunReports: document.getElementById('editFungunReport').value.split(',').map(link => link.trim()).filter(Boolean)
     };
     if (sendMessage('CHEATER_UPDATED', updatedData)) closeEditModal();
 }
@@ -145,17 +145,8 @@ function togglePlayerHistory(rowElement) {
     const existingHistoryRow = document.getElementById(`history-${cheaterId}`);
     const icon = rowElement.querySelector('.history-icon');
 
-    // Diğer tüm açık geçmişleri kapat
-    document.querySelectorAll('.stv-history-row').forEach(row => {
-        if (row.id !== `history-${cheaterId}`) {
-            row.remove();
-        }
-    });
-    document.querySelectorAll('.history-icon.rotated').forEach(i => {
-        if (i !== icon) {
-            i.classList.remove('rotated');
-        }
-    });
+    document.querySelectorAll('.stv-history-row').forEach(row => { if (row.id !== `history-${cheaterId}`) row.remove(); });
+    document.querySelectorAll('.history-icon.rotated').forEach(i => { if (i !== icon) i.classList.remove('rotated'); });
 
     if (existingHistoryRow) {
         existingHistoryRow.remove();
@@ -165,7 +156,7 @@ function togglePlayerHistory(rowElement) {
         if (!cheater || !cheater.history || cheater.history.length === 0) {
              showToast('Bu oyuncu için geçmiş tespit kaydı bulunmuyor.', 'info');
              return;
-        };
+        }
         
         icon?.classList.add('rotated');
         const historyRow = document.createElement('tr');
@@ -177,38 +168,23 @@ function togglePlayerHistory(rowElement) {
             <div class="stv-history-item">
                 <span class="stv-history-date"><i class="fas fa-calendar-alt mr-2"></i>${new Date(item.date).toLocaleString('tr-TR')}</span>
                 <span class="stv-history-server"><i class="fas fa-server mr-2"></i>${item.serverName}</span>
-            </div>
-        `).join('');
+            </div>`).join('');
 
-        historyRow.innerHTML = `
-            <td colspan="${colSpan}">
-                <div class="stv-history-container">
-                    <h4 class="stv-history-title"><i class="fas fa-history mr-2"></i>${cheater.playerName} - Tespit Geçmişi</h4>
-                    <div class="stv-history-list">${historyContent}</div>
-                </div>
-            </td>`;
+        historyRow.innerHTML = `<td colspan="${colSpan}"><div class="stv-history-container"><h4 class="stv-history-title"><i class="fas fa-history mr-2"></i>${cheater.playerName} - Tespit Geçmişi</h4><div class="stv-history-list">${historyContent}</div></div></td>`;
         rowElement.parentNode.insertBefore(historyRow, rowElement.nextSibling);
     }
 }
 
 // --- Modal Kontrol Fonksiyonları ---
 function showWelcomeModal() { document.getElementById('welcomeModal').style.display = 'flex'; }
-function closeWelcomeModal() {
-    document.getElementById('welcomeModal').style.display = 'none';
-    localStorage.setItem('stvVisited', 'true');
-    hasVisited = true;
-}
+function closeWelcomeModal() { document.getElementById('welcomeModal').style.display = 'none'; localStorage.setItem('stvVisited', 'true'); hasVisited = true; }
 function toggleAdminPanel() { isLoggedIn ? showAdminPanel() : showAdminLoginModal(); }
 function showAdminLoginModal() { document.getElementById('adminLoginModal').style.display = 'flex'; }
 function closeAdminLoginModal() { document.getElementById('adminLoginModal').style.display = 'none'; document.getElementById('adminPassword').value = ''; }
 function showAdminPanel() { document.getElementById('adminPanelModal').style.display = 'flex'; document.getElementById('cheaterForm').reset(); }
 function closeAdminPanel() { document.getElementById('adminPanelModal').style.display = 'none'; }
 function closeEditModal() { document.getElementById('editModal').style.display = 'none'; editingCheater = null; }
-function showConfirmModal(message, callback) {
-    document.getElementById('confirmMessage').textContent = message;
-    document.getElementById('confirmModal').style.display = 'flex';
-    confirmCallback = callback;
-}
+function showConfirmModal(message, callback) { document.getElementById('confirmMessage').textContent = message; document.getElementById('confirmModal').style.display = 'flex'; confirmCallback = callback; }
 function closeConfirmModal() { document.getElementById('confirmModal').style.display = 'none'; confirmCallback = null; }
 function handleConfirmYes() { if (confirmCallback) { confirmCallback(); } closeConfirmModal(); }
 
@@ -224,8 +200,7 @@ function handleAdminLogin() {
 function updateAdminUI() {
     document.getElementById('adminBtn').innerHTML = `<i class="fas fa-user-shield mr-2"></i> ${isLoggedIn ? 'Admin ✓' : 'Admin'}`;
     document.getElementById('quickAddBtn').style.display = isLoggedIn ? 'flex' : 'none';
-    const actionsHeader = document.getElementById('actionsHeader');
-    if (actionsHeader) actionsHeader.style.display = isLoggedIn ? 'table-cell' : 'none';
+    document.getElementById('actionsHeader').style.display = isLoggedIn ? 'table-cell' : 'none';
     updateDisplay();
 }
 
@@ -238,7 +213,7 @@ function showToast(message, type = 'info') {
     setTimeout(() => { toast.style.transform = 'translateX(0)'; }, 100);
     setTimeout(() => {
         toast.style.transform = 'translateX(120%)';
-        setTimeout(() => { document.body.removeChild(toast); }, 400);
+        setTimeout(() => { if (document.body.contains(toast)) document.body.removeChild(toast); }, 400);
     }, 4000);
 }
 function showConnectionStatus(isConnecting, message = '') {
