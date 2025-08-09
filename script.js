@@ -1,5 +1,3 @@
-// script.js - Final Sürüm (Tüm Özellikler Dahil)
-
 // --- Global Değişkenler ---
 let cheaters = [];
 let isLoggedIn = false;
@@ -145,38 +143,39 @@ function deleteCheater(cheaterId) {
 function togglePlayerHistory(rowElement) {
     const cheaterId = rowElement.dataset.id;
     const existingHistoryRow = document.getElementById(`history-${cheaterId}`);
+    const icon = rowElement.querySelector('.history-icon');
 
-    document.querySelectorAll('.history-icon.rotated').forEach(icon => {
-        if (icon !== rowElement.querySelector('.history-icon')) {
-            icon.classList.remove('rotated');
+    // Diğer tüm açık geçmişleri kapat
+    document.querySelectorAll('.stv-history-row').forEach(row => {
+        if (row.id !== `history-${cheaterId}`) {
+            row.remove();
         }
     });
-    document.querySelectorAll('.stv-history-row').forEach(row => {
-        if (row !== existingHistoryRow) {
-            row.remove();
+    document.querySelectorAll('.history-icon.rotated').forEach(i => {
+        if (i !== icon) {
+            i.classList.remove('rotated');
         }
     });
 
     if (existingHistoryRow) {
         existingHistoryRow.remove();
-        rowElement.querySelector('.history-icon')?.classList.remove('rotated');
+        icon?.classList.remove('rotated');
     } else {
         const cheater = cheaters.find(c => c._id === cheaterId);
         if (!cheater) return;
-
-        rowElement.querySelector('.history-icon')?.classList.add('rotated');
         
+        icon?.classList.add('rotated');
         const historyRow = document.createElement('tr');
         historyRow.id = `history-${cheaterId}`;
         historyRow.className = 'stv-history-row';
-        
         const colSpan = isLoggedIn ? 8 : 7;
-        let historyContent = '<div class="stv-history-item">Henüz geçmiş tarama kaydı yok.</div>';
-        if(cheater.history && cheater.history.length > 0) {
+        let historyContent = '<div class="stv-history-item" style="grid-template-columns: 1fr; text-align: center;">Henüz geçmiş tarama kaydı yok.</div>';
+        
+        if (cheater.history && cheater.history.length > 0) {
             historyContent = cheater.history.map(item => `
                 <div class="stv-history-item">
-                    <div>${new Date(item.date).toLocaleString('tr-TR')}</div>
-                    <div>${item.serverName}</div>
+                    <span><i class="fas fa-calendar-alt mr-2"></i>${new Date(item.date).toLocaleString('tr-TR')}</span>
+                    <span><i class="fas fa-server mr-2"></i>${item.serverName}</span>
                 </div>
             `).join('');
         }
@@ -184,7 +183,7 @@ function togglePlayerHistory(rowElement) {
         historyRow.innerHTML = `
             <td colspan="${colSpan}">
                 <div class="stv-history-container">
-                    <h4 class="stv-history-title">${cheater.playerName} - Tespit Geçmişi</h4>
+                    <h4 class="stv-history-title"><i class="fas fa-history mr-2"></i>${cheater.playerName} - Tespit Geçmişi</h4>
                     <div class="stv-history-list">${historyContent}</div>
                 </div>
             </td>`;
@@ -192,8 +191,28 @@ function togglePlayerHistory(rowElement) {
     }
 }
 
+// --- Modal Kontrol Fonksiyonları ---
+function showWelcomeModal() { document.getElementById('welcomeModal').style.display = 'flex'; }
+function closeWelcomeModal() {
+    document.getElementById('welcomeModal').style.display = 'none';
+    localStorage.setItem('stvVisited', 'true');
+    hasVisited = true;
+}
+function toggleAdminPanel() { isLoggedIn ? showAdminPanel() : showAdminLoginModal(); }
+function showAdminLoginModal() { document.getElementById('adminLoginModal').style.display = 'flex'; }
+function closeAdminLoginModal() { document.getElementById('adminLoginModal').style.display = 'none'; }
+function showAdminPanel() { document.getElementById('adminPanelModal').style.display = 'flex'; document.getElementById('cheaterForm').reset(); }
+function closeAdminPanel() { document.getElementById('adminPanelModal').style.display = 'none'; }
+function closeEditModal() { document.getElementById('editModal').style.display = 'none'; editingCheater = null; }
+function showConfirmModal(message, callback) {
+    document.getElementById('confirmMessage').textContent = message;
+    document.getElementById('confirmModal').style.display = 'flex';
+    confirmCallback = callback;
+}
+function closeConfirmModal() { document.getElementById('confirmModal').style.display = 'none'; confirmCallback = null; }
+function handleConfirmYes() { if (confirmCallback) { confirmCallback(); } closeConfirmModal(); }
 
-// --- Modal ve UI Fonksiyonları ---
+// --- Admin Giriş Fonksiyonları ---
 function handleAdminLogin() {
     if (ADMIN_PASSWORDS.includes(document.getElementById('adminPassword').value)) {
         isLoggedIn = true;
@@ -205,22 +224,27 @@ function handleAdminLogin() {
 function updateAdminUI() {
     document.getElementById('adminBtn').innerHTML = `<i class="fas fa-user-shield mr-2"></i> ${isLoggedIn ? 'Admin ✓' : 'Admin'}`;
     document.getElementById('quickAddBtn').style.display = isLoggedIn ? 'flex' : 'none';
+    const actionsHeader = document.getElementById('actionsHeader');
+    if (actionsHeader) actionsHeader.style.display = isLoggedIn ? 'table-cell' : 'none';
     updateDisplay();
 }
-function closeWelcomeModal() { document.getElementById('welcomeModal').style.display = 'none'; localStorage.setItem('stvVisited', 'true'); hasVisited = true; }
-function toggleAdminPanel() { isLoggedIn ? showAdminPanel() : showAdminLoginModal(); }
-function showAdminPanel() { document.getElementById('adminPanelModal').style.display = 'flex'; }
-function closeAdminPanel() { document.getElementById('cheaterForm').reset(); document.getElementById('adminPanelModal').style.display = 'none'; }
-function closeAdminLoginModal() { document.getElementById('adminPassword').value = ''; document.getElementById('adminLoginModal').style.display = 'none'; }
-function closeEditModal() { document.getElementById('editForm').reset(); document.getElementById('editModal').style.display = 'none'; editingCheater = null; }
-function showConfirmModal(message, callback) { document.getElementById('confirmMessage').textContent = message; document.getElementById('confirmModal').style.display = 'flex'; confirmCallback = callback; }
-function closeConfirmModal() { document.getElementById('confirmModal').style.display = 'none'; confirmCallback = null; }
-function handleConfirmYes() { if (confirmCallback) confirmCallback(); closeConfirmModal(); }
-function showToast(message, type = 'info') { const toast = document.createElement('div'); toast.style.cssText = `...`; toast.textContent = message; document.body.appendChild(toast); /* ... timeout logic ... */ }
+
+// --- Arayüz Güncelleme ve Yardımcı Fonksiyonlar ---
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.style.cssText = `position: fixed; top: 20px; right: 20px; background: ${type === 'error' ? '#dc2626' : type === 'success' ? '#16a34a' : '#3b82f6'}; color: white; padding: 12px 20px; border-radius: 8px; z-index: 10000; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transform: translateX(100%); transition: transform 0.3s ease;`;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => { toast.style.transform = 'translateX(0)'; }, 100);
+    setTimeout(() => {
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => { document.body.removeChild(toast); }, 300);
+    }, 3000);
+}
 function showConnectionStatus(isError, message = '') {
     const statusDiv = document.getElementById('connectionStatus');
     statusDiv.style.display = isError ? 'block' : 'none';
-    if(isError) statusDiv.innerHTML = `<div class="inline-flex items-center gap-2 p-2 rounded-lg bg-yellow-900/20 text-yellow-400">${message}</div>`;
+    if (isError) statusDiv.innerHTML = `<div class="inline-flex items-center gap-2 p-2 rounded-lg bg-yellow-900/20 text-yellow-400">${message}</div>`;
 }
 function updateLastUpdateTime() { document.getElementById('lastUpdateTime').textContent = new Date().toLocaleString('tr-TR'); }
 
@@ -247,8 +271,8 @@ function updateDisplay() {
     filteredCheaters.sort((a, b) => {
         const aVal = a[sortColumn] || '';
         const bVal = b[sortColumn] || '';
-        if (sortDirection === 'asc') return String(aVal).localeCompare(String(bVal));
-        return String(bVal).localeCompare(String(aVal));
+        if (sortDirection === 'asc') return String(aVal).localeCompare(String(bVal), undefined, {numeric: true});
+        return String(bVal).localeCompare(String(aVal), undefined, {numeric: true});
     });
 
     const colSpan = isLoggedIn ? 8 : 7;
@@ -280,6 +304,5 @@ function updateDisplay() {
             </tr>
         `).join('');
     }
-    document.getElementById('cheaterCount').textContent = cheaters.length;
     document.getElementById('cheaterCountDisplay').textContent = cheaters.length;
 }
