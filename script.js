@@ -8,7 +8,7 @@ let socket = null;
 let editingCheater = null;
 let confirmCallback = null;
 
-const ADMIN_PASSWORDS = ['123', 'ljupka2024'];
+const ADMIN_PASSWORDS = ['1234a', 'ljupka2024'];
 const WS_URL = 'wss://stv-backend.onrender.com'; // Canlı sunucu adresiniz
 
 // --- Sayfa Yüklendiğinde Başlat ---
@@ -93,7 +93,7 @@ function handleSubmit(e) {
         steamProfile: document.getElementById('steamProfile').value.trim(),
         serverName: document.getElementById('serverName').value.trim() || "Bilinmiyor",
         cheatTypes: document.getElementById('cheatTypes').value.split(',').map(t => t.trim()).filter(Boolean),
-        fungunReports: document.getElementById('fungunReport').value.split(',').map(link => link.trim()).filter(Boolean)
+        fungunReport: document.getElementById('fungunReport').value.trim()
     };
     if (!cheaterData.playerName || !cheaterData.steamId) {
         showToast('Oyuncu Adı ve Steam ID zorunludur!', 'error');
@@ -113,7 +113,7 @@ function handleEditSubmit(e) {
         serverName: document.getElementById('editServerName').value.trim() || "Bilinmiyor",
         detectionCount: parseInt(document.getElementById('editDetectionCount').value),
         cheatTypes: document.getElementById('editCheatTypes').value.split(',').map(t => t.trim()).filter(Boolean),
-        fungunReports: document.getElementById('editFungunReport').value.split(',').map(link => link.trim()).filter(Boolean)
+        fungunReport: document.getElementById('editFungunReport').value.trim()
     };
     if (sendMessage('CHEATER_UPDATED', updatedData)) closeEditModal();
 }
@@ -128,7 +128,7 @@ function showEditModal(cheaterId) {
     document.getElementById('editServerName').value = editingCheater.serverName;
     document.getElementById('editDetectionCount').value = editingCheater.detectionCount;
     document.getElementById('editCheatTypes').value = (editingCheater.cheatTypes || []).join(', ');
-    document.getElementById('editFungunReports').value = (editingCheater.fungunReports || []).join(', ');
+    document.getElementById('editFungunReport').value = editingCheater.fungunReport || '';
     document.getElementById('editModal').style.display = 'flex';
 }
 
@@ -251,6 +251,7 @@ function updateDisplay() {
     });
 
     const colSpan = isLoggedIn ? 8 : 7;
+    document.getElementById('actionsHeader').style.display = isLoggedIn ? 'table-cell' : 'none';
     if (filteredCheaters.length === 0) {
         tableBody.innerHTML = `<tr><td colspan="${colSpan}" class="text-center py-10 text-gray-400">Kayıt bulunamadı.</td></tr>`;
     } else {
@@ -267,7 +268,7 @@ function updateDisplay() {
                 <td class="p-3">${cheater.serverName}</td>
                 <td class="p-3"><span class="stv-detection-count">${cheater.detectionCount}</span></td>
                 <td class="p-3">${(cheater.cheatTypes || []).map(type => `<span class="stv-cheat-type">${type}</span>`).join('')}</td>
-                <td class="p-3">${(cheater.fungunReports || []).map(link => `<a href="${link}" target="_blank" class="text-red-400 hover:underline block">Rapor</a>`).join('') || 'Yok'}</td>
+                <td class="p-3">${(cheater.fungunReport || '').split(',').map(link => link.trim()).filter(Boolean).map(link => `<a href="${link}" target="_blank" class="text-red-400 hover:underline block">Rapor</a>`).join('') || 'Yok'}</td>
                 ${isLoggedIn ? `
                     <td class="p-3">
                         <div class="stv-action-buttons">
