@@ -11,7 +11,7 @@ let socket = null;
 const ADMIN_PASSWORDS = ['stv2024admin', 'ljupka2024'];
 
 // API endpoints - Backend sunucu URL'inizi buraya yazın
-const API_BASE = 'https://your-backend-url.com'; // Bu URL'i backend sunucunuzun URL'i ile değiştirin
+// const API_BASE = 'https://your-backend-url.com'; // Bu URL'i backend sunucunuzun URL'i ile değiştirin
 const WS_URL = 'wss://stv-backend.onrender.com';
 
 // Toast notification fonksiyonu
