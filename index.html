@@ -159,6 +159,60 @@
         </div>
     </div>
 
+    <!-- Düzenleme Modal -->
+    <div id="editModal" class="stv-modal" style="display: none;">
+        <div class="stv-modal-content max-w-4xl">
+            <h2 class="text-4xl font-bold text-yellow-400 mb-6" style="text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);">
+                <i class="fas fa-edit mr-3"></i>
+                Hileci Düzenle
+            </h2>
+
+            <form id="editForm">
+                <div class="stv-admin-form-grid">
+                    <div class="stv-form-group">
+                        <label class="stv-form-label">Oyuncu Adı *</label>
+                        <input type="text" id="editPlayerName" class="stv-input-form" placeholder="Oyuncu adını girin..." required />
+                    </div>
+                    <div class="stv-form-group">
+                        <label class="stv-form-label">Steam ID *</label>
+                        <input type="text" id="editSteamId" class="stv-input-form" placeholder="Steam ID girin..." required />
+                    </div>
+                    <div class="stv-form-group">
+                        <label class="stv-form-label">Steam Profil</label>
+                        <input type="url" id="editSteamProfile" class="stv-input-form" placeholder="https://steamcommunity.com/..." />
+                    </div>
+                    <div class="stv-form-group">
+                        <label class="stv-form-label">Son Sunucu *</label>
+                        <input type="text" id="editServerName" class="stv-input-form" placeholder="Sunucu adını girin..." required />
+                    </div>
+                    <div class="stv-form-group">
+                        <label class="stv-form-label">Tespit Sayısı</label>
+                        <input type="number" id="editDetectionCount" min="1" value="1" class="stv-input-form" />
+                    </div>
+                    <div class="stv-form-group">
+                        <label class="stv-form-label">Hile Türleri</label>
+                        <input type="text" id="editCheatTypes" class="stv-input-form" placeholder="örn: Aimbot, Wallhack, Speed" />
+                    </div>
+                    <div class="stv-form-group" style="grid-column: 1 / -1;">
+                        <label class="stv-form-label">Fungun Rapor Linki</label>
+                        <input type="url" id="editFungunReport" class="stv-input-form" placeholder="https://..." />
+                    </div>
+                </div>
+
+                <div class="flex gap-4 justify-center flex-wrap">
+                    <button type="submit" id="editSubmitBtn" class="stv-btn-primary px-8 py-4 text-base flex items-center gap-2">
+                        <i class="fas fa-save"></i>
+                        Kaydet
+                    </button>
+                    <button type="button" id="editCancelBtn" class="stv-btn-secondary px-8 py-4 text-base flex items-center gap-2">
+                        <i class="fas fa-times"></i>
+                        İptal
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Onay Modal -->
     <div id="confirmModal" class="stv-modal" style="display: none;">
         <div class="stv-modal-content">
@@ -186,7 +240,7 @@
         Discord
     </a>
     <div class="stv-admin-info">
-        YAPIMCILAR: XİAXON - LJUPKA - SELAMKİMSEN
+        ADMİN: LJUPKA - XİAXON
     </div>
     <a href="https://www.youtube.com/@xiaxonn" target="_blank" rel="noopener noreferrer" class="stv-social-btn stv-youtube-btn">
         <i class="fab fa-youtube text-lg"></i>
@@ -238,12 +292,12 @@
                                     <i id="sort-playerName" class="fas fa-sort ml-2" style="opacity: 0.5;"></i>
                                 </th>
                                 <th class="stv-table-header cursor-pointer" onclick="sortTable('steamId')">
-                                    <i class="fas fa-id-card mr-2"></i>
+                                    <i class="fab fa-steam mr-2"></i>
                                     Steam ID
                                     <i id="sort-steamId" class="fas fa-sort ml-2" style="opacity: 0.5;"></i>
                                 </th>
                                 <th class="stv-table-header">
-                                    <i class="fab fa-steam mr-2"></i>
+                                    <i class="fas fa-link mr-2"></i>
                                     Steam Profil
                                 </th>
                                 <th class="stv-table-header cursor-pointer" onclick="sortTable('serverName')">
@@ -252,8 +306,8 @@
                                     <i id="sort-serverName" class="fas fa-sort ml-2" style="opacity: 0.5;"></i>
                                 </th>
                                 <th class="stv-table-header cursor-pointer" onclick="sortTable('detectionCount')">
-                                    <i class="fas fa-exclamation-triangle mr-2"></i>
-                                    Tespit
+                                    <i class="fas fa-crosshairs mr-2"></i>
+                                    Tespit Sayısı
                                     <i id="sort-detectionCount" class="fas fa-sort ml-2" style="opacity: 0.5;"></i>
                                 </th>
                                 <th class="stv-table-header">
@@ -261,8 +315,8 @@
                                     Hile Türleri
                                 </th>
                                 <th class="stv-table-header">
-                                    <i class="fas fa-link mr-2"></i>
-                                    Rapor
+                                    <i class="fas fa-file-alt mr-2"></i>
+                                    Fungun Rapor
                                 </th>
                                 <th id="actionsHeader" class="stv-table-header" style="display: none;">
                                     <i class="fas fa-cogs mr-2"></i>
@@ -272,9 +326,9 @@
                         </thead>
                         <tbody id="cheaterTableBody">
                             <tr>
-                                <td colspan="7" class="text-center py-10 text-gray-500 text-lg">
-                                    <i class="fas fa-search mb-3 text-2xl block"></i>
-                                    Henüz hileci eklenmemiş.
+                                <td colspan="8" class="text-center py-10">
+                                    <i class="fas fa-spinner fa-spin mr-2"></i>
+                                    Yükleniyor...
                                 </td>
                             </tr>
                         </tbody>
@@ -282,15 +336,29 @@
                 </div>
             </div>
 
-            <!-- Footer Info -->
-            <div class="text-center mt-8 text-gray-400">
-                <p class="mb-2">
-                    <i class="fas fa-shield-alt mr-2"></i>
-                    STV HİLEYLE MÜCADELE - CS 1.6 Hileci Takip Sistemi
-                </p>
-                <p class="text-sm" id="lastUpdate">
-                    Son güncelleme: <span id="lastUpdateTime">-</span>
-                </p>
+            <!-- İstatistikler -->
+            <div class="mt-8 text-center">
+                <div class="stv-card p-6">
+                    <div class="flex flex-wrap items-center justify-center gap-6">
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-red-400 mb-2">
+                                <span id="cheaterCountDisplay">0</span>
+                            </div>
+                            <div class="text-gray-300 text-sm">
+                                Toplam Hileci
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-lg text-gray-400 mb-2">
+                                <i class="fas fa-clock mr-2"></i>
+                                Son Güncelleme
+                            </div>
+                            <div class="text-gray-300 text-sm" id="lastUpdateTime">
+                                -
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -298,6 +366,3 @@
     <script src="script.js"></script>
 </body>
 </html>
-
-
-
