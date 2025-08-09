@@ -63,7 +63,7 @@
             
             <div class="mb-6">
                 <div class="relative">
-                    <input type="password" id="adminPassword" class="w-full p-4 pl-12 border-2 border-gray-600 rounded-xl bg-gray-800/60 text-white text-base outline-none transition-all duration-300 focus:border-red-500 focus:bg-gray-800/80 focus:shadow-[0_0_20px_rgba(153,0,0,0.2)] placeholder-gray-500" placeholder="Admin şifresi" />
+                    <input type="password" id="adminPassword" class="stv-input-admin pl-12" placeholder="Admin şifresi" />
                     <i class="fas fa-key absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500"></i>
                 </div>
             </div>
@@ -91,70 +91,71 @@
 
             <!-- Hızlı İstatistik -->
             <div class="mb-6 text-center">
-                <div class="inline-block stv-card p-4">
-                    <span id="cheaterCount" class="text-2xl font-bold text-red-400 mr-3">0</span>
-                    <span class="text-gray-300">hileci listelendi</span>
+                <div class="stv-stats-card">
+                    <span id="cheaterCount" class="text-3xl font-bold text-red-400 mr-3">0</span>
+                    <span class="text-white text-lg">hileci listelendi</span>
                 </div>
             </div>
 
             <!-- Hızlı İşlemler -->
-            <div class="flex flex-wrap gap-3 justify-center mb-6">
-                <button id="exportBtn" class="stv-btn-primary px-4 py-2 text-sm flex items-center gap-2">
+            <div class="stv-quick-actions">
+                <button id="exportBtn" class="stv-action-btn stv-export-btn">
                     <i class="fas fa-download"></i>
                     İndir
                 </button>
-                <label class="bg-gradient-to-r from-green-600 to-green-500 text-white px-4 py-2 rounded-xl cursor-pointer font-bold transition-all duration-300 hover:from-green-700 hover:to-green-600 hover:-translate-y-0.5 flex items-center gap-2 text-sm">
+                <label class="stv-action-btn stv-import-btn cursor-pointer">
                     <i class="fas fa-upload"></i>
                     Yükle
                     <input type="file" id="importFile" accept=".json" class="hidden" />
                 </label>
-
             </div>
 
             <div id="adminMessage" class="rounded-lg p-3 mb-4 text-center" style="display: none;"></div>
 
             <!-- Form -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 text-left">
-                <div>
-                    <label class="block text-white mb-2 font-bold">Oyuncu Adı:</label>
-                    <input type="text" id="playerName" class="w-full p-3 border-2 border-red-800 rounded-lg bg-gray-800/80 text-white text-sm outline-none transition-all duration-300 focus:border-red-600 focus:bg-gray-800/90 focus:shadow-[0_0_10px_rgba(153,0,0,0.3)]" placeholder="Oyuncu adını girin..." />
+            <form id="cheaterForm">
+                <div class="stv-admin-form-grid">
+                    <div class="stv-form-group">
+                        <label class="stv-form-label">Oyuncu Adı *</label>
+                        <input type="text" id="playerName" class="stv-input-form" placeholder="Oyuncu adını girin..." required />
+                    </div>
+                    <div class="stv-form-group">
+                        <label class="stv-form-label">Steam ID *</label>
+                        <input type="text" id="steamId" class="stv-input-form" placeholder="Steam ID girin..." required />
+                    </div>
+                    <div class="stv-form-group">
+                        <label class="stv-form-label">Steam Profil</label>
+                        <input type="url" id="steamProfile" class="stv-input-form" placeholder="https://steamcommunity.com/..." />
+                    </div>
+                    <div class="stv-form-group">
+                        <label class="stv-form-label">Son Sunucu *</label>
+                        <input type="text" id="serverName" class="stv-input-form" placeholder="Sunucu adını girin..." required />
+                    </div>
+                    <div class="stv-form-group">
+                        <label class="stv-form-label">Tespit Sayısı</label>
+                        <input type="number" id="detectionCount" min="1" value="1" class="stv-input-form" />
+                    </div>
+                    <div class="stv-form-group">
+                        <label class="stv-form-label">Hile Türleri</label>
+                        <input type="text" id="cheatTypes" class="stv-input-form" placeholder="örn: Aimbot, Wallhack, Speed" />
+                    </div>
+                    <div class="stv-form-group" style="grid-column: 1 / -1;">
+                        <label class="stv-form-label">Fungun Rapor Linki</label>
+                        <input type="url" id="fungunReport" class="stv-input-form" placeholder="https://..." />
+                    </div>
                 </div>
-                <div>
-                    <label class="block text-white mb-2 font-bold">Steam ID:</label>
-                    <input type="text" id="steamId" class="w-full p-3 border-2 border-red-800 rounded-lg bg-gray-800/80 text-white text-sm outline-none transition-all duration-300 focus:border-red-600 focus:bg-gray-800/90 focus:shadow-[0_0_10px_rgba(153,0,0,0.3)]" placeholder="Steam ID girin..." />
-                </div>
-                <div>
-                    <label class="block text-white mb-2 font-bold">Steam Profil:</label>
-                    <input type="url" id="steamProfile" class="w-full p-3 border-2 border-red-800 rounded-lg bg-gray-800/80 text-white text-sm outline-none transition-all duration-300 focus:border-red-600 focus:bg-gray-800/90 focus:shadow-[0_0_10px_rgba(153,0,0,0.3)]" placeholder="https://steamcommunity.com/..." />
-                </div>
-                <div>
-                    <label class="block text-white mb-2 font-bold">Son Sunucu:</label>
-                    <input type="text" id="serverName" class="w-full p-3 border-2 border-red-800 rounded-lg bg-gray-800/80 text-white text-sm outline-none transition-all duration-300 focus:border-red-600 focus:bg-gray-800/90 focus:shadow-[0_0_10px_rgba(153,0,0,0.3)]" placeholder="Sunucu adını girin..." />
-                </div>
-                <div>
-                    <label class="block text-white mb-2 font-bold">Tespit Sayısı:</label>
-                    <input type="number" id="detectionCount" min="1" value="1" class="w-full p-3 border-2 border-red-800 rounded-lg bg-gray-800/80 text-white text-sm outline-none transition-all duration-300 focus:border-red-600 focus:bg-gray-800/90 focus:shadow-[0_0_10px_rgba(153,0,0,0.3)]" />
-                </div>
-                <div>
-                    <label class="block text-white mb-2 font-bold">Hile Türleri (virgülle ayırın):</label>
-                    <input type="text" id="cheatTypes" class="w-full p-3 border-2 border-red-800 rounded-lg bg-gray-800/80 text-white text-sm outline-none transition-all duration-300 focus:border-red-600 focus:bg-gray-800/90 focus:shadow-[0_0_10px_rgba(153,0,0,0.3)]" placeholder="örn: Aimbot, Wallhack, Speed" />
-                </div>
-                <div class="md:col-span-2">
-                    <label class="block text-white mb-2 font-bold">Fungun Rapor Linki:</label>
-                    <input type="url" id="fungunReport" class="w-full p-3 border-2 border-red-800 rounded-lg bg-gray-800/80 text-white text-sm outline-none transition-all duration-300 focus:border-red-600 focus:bg-gray-800/90 focus:shadow-[0_0_10px_rgba(153,0,0,0.3)]" placeholder="https://..." />
-                </div>
-            </div>
 
-            <div class="flex gap-4 justify-center">
-                <button id="submitBtn" class="stv-btn-primary px-8 py-4 text-base flex items-center gap-2">
-                    <i class="fas fa-plus"></i>
-                    Hileci Ekle
-                </button>
-                <button id="adminCloseBtn" class="stv-btn-secondary px-8 py-4 text-base flex items-center gap-2">
-                    <i class="fas fa-times"></i>
-                    Kapat
-                </button>
-            </div>
+                <div class="flex gap-4 justify-center flex-wrap">
+                    <button type="submit" id="submitBtn" class="stv-btn-primary px-8 py-4 text-base flex items-center gap-2">
+                        <i class="fas fa-plus"></i>
+                        Hileci Ekle
+                    </button>
+                    <button type="button" id="adminCloseBtn" class="stv-btn-secondary px-8 py-4 text-base flex items-center gap-2">
+                        <i class="fas fa-times"></i>
+                        Kapat
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -211,43 +212,67 @@
 
             <!-- Arama Kutusu -->
             <div class="flex justify-center items-center mb-8">
-                <input type="text" id="searchInput" class="stv-input w-full max-w-lg" placeholder="Steam ID veya nick ile ara..." />
+                <div class="relative w-full max-w-md">
+                    <input type="text" id="searchInput" class="stv-input pl-12" placeholder="Oyuncu adı veya Steam ID ile ara..." />
+                    <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500"></i>
+                </div>
+            </div>
+
+            <!-- Bağlantı Durumu -->
+            <div id="connectionStatus" class="text-center mb-4" style="display: none;">
+                <div class="inline-flex items-center gap-2 bg-yellow-900/20 border border-yellow-500 text-yellow-400 px-4 py-2 rounded-lg">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span id="connectionText">Bağlantı kuruluyor...</span>
+                </div>
             </div>
 
             <!-- Tablo Container -->
-            <div id="tableContainer" class="stv-card overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+            <div class="stv-table-container">
                 <div class="overflow-x-auto">
-                    <table class="w-full border-collapse">
+                    <table class="stv-table">
                         <thead>
                             <tr>
-                                <th class="stv-table-header text-left cursor-pointer" onclick="sortTable('playerName')">
+                                <th class="stv-table-header cursor-pointer" onclick="sortTable('playerName')">
+                                    <i class="fas fa-user mr-2"></i>
                                     Oyuncu Adı
-                                    <i class="fas fa-sort ml-2" id="sort-playerName"></i>
+                                    <i id="sort-playerName" class="fas fa-sort ml-2" style="opacity: 0.5;"></i>
                                 </th>
-                                <th class="stv-table-header text-left cursor-pointer" onclick="sortTable('steamId')">
+                                <th class="stv-table-header cursor-pointer" onclick="sortTable('steamId')">
+                                    <i class="fas fa-id-card mr-2"></i>
                                     Steam ID
-                                    <i class="fas fa-sort ml-2" id="sort-steamId"></i>
+                                    <i id="sort-steamId" class="fas fa-sort ml-2" style="opacity: 0.5;"></i>
                                 </th>
-                                <th class="stv-table-header text-left">Steam Profil</th>
-                                <th class="stv-table-header text-left cursor-pointer" onclick="sortTable('serverName')">
+                                <th class="stv-table-header">
+                                    <i class="fab fa-steam mr-2"></i>
+                                    Steam Profil
+                                </th>
+                                <th class="stv-table-header cursor-pointer" onclick="sortTable('serverName')">
+                                    <i class="fas fa-server mr-2"></i>
                                     Son Sunucu
-                                    <i class="fas fa-sort ml-2" id="sort-serverName"></i>
+                                    <i id="sort-serverName" class="fas fa-sort ml-2" style="opacity: 0.5;"></i>
                                 </th>
-                                <th class="stv-table-header text-left cursor-pointer" onclick="sortTable('detectionCount')">
-                                    Tespit Sayısı
-                                    <i class="fas fa-sort ml-2" id="sort-detectionCount"></i>
+                                <th class="stv-table-header cursor-pointer" onclick="sortTable('detectionCount')">
+                                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                                    Tespit
+                                    <i id="sort-detectionCount" class="fas fa-sort ml-2" style="opacity: 0.5;"></i>
                                 </th>
-                                <th class="stv-table-header text-left cursor-pointer" onclick="sortTable('cheatTypes')">
+                                <th class="stv-table-header">
+                                    <i class="fas fa-bug mr-2"></i>
                                     Hile Türleri
-                                    <i class="fas fa-sort ml-2" id="sort-cheatTypes"></i>
                                 </th>
-                                <th class="stv-table-header text-left">Fungun Raporu</th>
-                                <th id="actionsHeader" class="stv-table-header text-left" style="display: none;">İşlemler</th>
+                                <th class="stv-table-header">
+                                    <i class="fas fa-link mr-2"></i>
+                                    Rapor
+                                </th>
+                                <th id="actionsHeader" class="stv-table-header" style="display: none;">
+                                    <i class="fas fa-cogs mr-2"></i>
+                                    İşlemler
+                                </th>
                             </tr>
                         </thead>
                         <tbody id="cheaterTableBody">
                             <tr>
-                                <td colspan="8" class="text-center py-10 text-gray-500 text-lg">
+                                <td colspan="7" class="text-center py-10 text-gray-500 text-lg">
                                     <i class="fas fa-search mb-3 text-2xl block"></i>
                                     Henüz hileci eklenmemiş.
                                 </td>
@@ -255,6 +280,17 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+
+            <!-- Footer Info -->
+            <div class="text-center mt-8 text-gray-400">
+                <p class="mb-2">
+                    <i class="fas fa-shield-alt mr-2"></i>
+                    STV HİLEYLE MÜCADELE - CS 1.6 Hileci Takip Sistemi
+                </p>
+                <p class="text-sm" id="lastUpdate">
+                    Son güncelleme: <span id="lastUpdateTime">-</span>
+                </p>
             </div>
         </div>
     </div>
