@@ -8,7 +8,7 @@ let socket = null;
 let editingCheater = null;
 let confirmCallback = null;
 
-const ADMIN_PASSWORDS = ['stv2024admin', 'ljupka2024'];
+const ADMIN_PASSWORDS = ['1234', 'ljupka2024'];
 const WS_URL = 'wss://stv-backend.onrender.com'; // Canlı sunucu adresiniz
 
 // --- Sayfa Yüklendiğinde Başlat ---
