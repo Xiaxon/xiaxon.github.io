@@ -5,20 +5,24 @@ let hasVisited = localStorage.getItem('stvVisited') === 'true';
 let sortColumn = null;
 let sortDirection = 'asc';
 let editingIndex = -1;
+let socket = null;
 
-// Admin şifresi kontrolü
-const ADMIN_PASSWORD = 'stv2024admin';
+// Admin şifreleri - 2 admin
+const ADMIN_PASSWORDS = ['stv2024admin', 'ljupka2024'];
+
+// API endpoints
+const API_BASE = window.location.origin;
+const WS_URL = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`;
 
 // Sayfa yüklendiğinde
 document.addEventListener('DOMContentLoaded', function() {
-    loadData();
     setupEventListeners();
+    connectWebSocket();
+    loadDataFromServer();
     
     if (!hasVisited) {
         showWelcomeModal();
     }
-    
-    updateDisplay();
 });
 
 // Event listener'ları kurma
@@ -32,10 +36,8 @@ function setupEventListeners() {
     
     // Form butonları
     document.getElementById('submitBtn').addEventListener('click', handleSubmit);
-    document.getElementById('clearFormBtn').addEventListener('click', clearForm);
     document.getElementById('exportBtn').addEventListener('click', exportData);
     document.getElementById('importFile').addEventListener('change', handleImport);
-    document.getElementById('clearAllBtn').addEventListener('click', confirmClearAll);
     
     // Onay modal
     document.getElementById('confirmYes').addEventListener('click', handleConfirmYes);
@@ -90,7 +92,7 @@ function closeAdminLoginModal() {
 function handleAdminLogin() {
     const password = document.getElementById('adminPassword').value;
     
-    if (password === ADMIN_PASSWORD) {
+    if (ADMIN_PASSWORDS.includes(password)) {
         isLoggedIn = true;
         closeAdminLoginModal();
         showAdminPanel();
@@ -172,7 +174,7 @@ function fillForm(cheater) {
 }
 
 // Form gönder
-function handleSubmit() {
+async function handleSubmit() {
     const playerName = document.getElementById('playerName').value.trim();
     const steamId = document.getElementById('steamId').value.trim();
     const steamProfile = document.getElementById('steamProfile').value.trim();
@@ -198,20 +200,21 @@ function handleSubmit() {
         fungunReport
     };
     
-    if (editingIndex >= 0) {
-        cheaters[editingIndex] = cheaterData;
-        showAdminMessage('Hileci başarıyla güncellendi!');
-        editingIndex = -1;
-    } else {
-        cheaters.push(cheaterData);
-        showAdminMessage('Hileci başarıyla eklendi!');
+    try {
+        if (editingIndex >= 0) {
+            await sendToServer('PUT', `cheaters/${editingIndex}`, cheaterData);
+            showAdminMessage('Hileci başarıyla güncellendi!');
+            editingIndex = -1;
+        } else {
+            await sendToServer('POST', 'cheaters', cheaterData);
+            showAdminMessage('Hileci başarıyla eklendi!');
+        }
+        
+        clearForm();
+        document.getElementById('submitBtn').innerHTML = '<i class="fas fa-plus"></i> Hileci Ekle';
+    } catch (error) {
+        showAdminMessage('İşlem başarısız!', false);
     }
-    
-    saveData();
-    updateDisplay();
-    updateCheaterCount();
-    clearForm();
-    document.getElementById('submitBtn').innerHTML = '<i class="fas fa-plus"></i> Hileci Ekle';
 }
 
 // Admin mesaj göster
@@ -262,19 +265,7 @@ function handleImport(e) {
     e.target.value = '';
 }
 
-// Tümünü temizle onayı
-function confirmClearAll() {
-    showConfirmModal('Tüm hileci verileri silinecek. Bu işlem geri alınamaz!', clearAllData);
-}
 
-// Tüm veriyi temizle
-function clearAllData() {
-    cheaters = [];
-    saveData();
-    updateDisplay();
-    updateCheaterCount();
-    showAdminMessage('Tüm veriler temizlendi!');
-}
 
 // Onay modalını göster
 function showConfirmModal(message, callback) {
@@ -305,21 +296,98 @@ function handleSearch() {
     updateDisplay(searchTerm);
 }
 
-// Veriyi localStorage'a kaydet
-function saveData() {
-    localStorage.setItem('stvCheaters', JSON.stringify(cheaters));
+// WebSocket bağlantısı
+function connectWebSocket() {
+    try {
+        socket = new WebSocket(WS_URL);
+        
+        socket.onopen = function() {
+            console.log('WebSocket connected');
+        };
+        
+        socket.onmessage = function(event) {
+            const message = JSON.parse(event.data);
+            handleWebSocketMessage(message);
+        };
+        
+        socket.onclose = function() {
+            console.log('WebSocket disconnected');
+            // Reconnect after 3 seconds
+            setTimeout(connectWebSocket, 3000);
+        };
+        
+        socket.onerror = function(error) {
+            console.error('WebSocket error:', error);
+        };
+    } catch (error) {
+        console.error('WebSocket connection failed:', error);
+        // Fallback to polling
+        setTimeout(() => loadDataFromServer(), 1000);
+    }
 }
 
-// Veriyi localStorage'dan yükle
-function loadData() {
-    const savedData = localStorage.getItem('stvCheaters');
-    if (savedData) {
-        try {
-            cheaters = JSON.parse(savedData);
-        } catch (error) {
-            console.error('Veri yüklenirken hata:', error);
-            cheaters = [];
+// WebSocket mesaj işleme
+function handleWebSocketMessage(message) {
+    switch (message.type) {
+        case 'INITIAL_DATA':
+            cheaters = message.data;
+            updateDisplay();
+            updateCheaterCount();
+            break;
+        case 'CHEATER_ADDED':
+            cheaters.push(message.data);
+            updateDisplay();
+            updateCheaterCount();
+            break;
+        case 'CHEATER_UPDATED':
+            if (message.data.index >= 0 && message.data.index < cheaters.length) {
+                cheaters[message.data.index] = message.data.cheater;
+                updateDisplay();
+            }
+            break;
+        case 'CHEATER_DELETED':
+            if (message.data.index >= 0 && message.data.index < cheaters.length) {
+                cheaters.splice(message.data.index, 1);
+                updateDisplay();
+                updateCheaterCount();
+            }
+            break;
+    }
+}
+
+// Sunucudan veri yükle
+async function loadDataFromServer() {
+    try {
+        const response = await fetch(`${API_BASE}/api/cheaters`);
+        if (response.ok) {
+            cheaters = await response.json();
+            updateDisplay();
+            updateCheaterCount();
         }
+    } catch (error) {
+        console.error('Veri yüklenirken hata:', error);
+    }
+}
+
+// Sunucuya veri gönder
+async function sendToServer(method, endpoint, data = null) {
+    try {
+        const options = {
+            method,
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        };
+        
+        if (data) {
+            options.body = JSON.stringify(data);
+        }
+        
+        const response = await fetch(`${API_BASE}/api/${endpoint}`, options);
+        return await response.json();
+    } catch (error) {
+        console.error('Sunucu iletişim hatası:', error);
+        throw error;
     }
 }
 
@@ -471,16 +539,17 @@ function editCheater(index) {
 }
 
 // Hileci sil
-function deleteCheater(index) {
+async function deleteCheater(index) {
     const cheater = cheaters[index];
     showConfirmModal(
         `"${cheater.playerName}" adlı hileci silinecek. Emin misiniz?`,
-        () => {
-            cheaters.splice(index, 1);
-            saveData();
-            updateDisplay();
-            updateCheaterCount();
-            showAdminMessage('Hileci silindi!');
+        async () => {
+            try {
+                await sendToServer('DELETE', `cheaters/${index}`);
+                showAdminMessage('Hileci silindi!');
+            } catch (error) {
+                showAdminMessage('Silme işlemi başarısız!', false);
+            }
         }
     );
 }
