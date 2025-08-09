@@ -2,14 +2,14 @@
 let cheaters = [];
 let isLoggedIn = false;
 let hasVisited = localStorage.getItem('stvVisited') === 'true';
-let sortColumn = 'createdAt'; // Varsayılan sıralama
-let sortDirection = 'desc'; // En yeni en üstte
+let sortColumn = 'createdAt';
+let sortDirection = 'desc';
 let socket = null;
 let editingCheater = null;
 let confirmCallback = null;
 
-const ADMIN_PASSWORDS = ['1234a', 'ljupka2024'];
-const WS_URL = 'wss://stv-backend.onrender.com'; // Canlı sunucu adresiniz
+const ADMIN_PASSWORDS = ['stv2024admin', 'ljupka2024'];
+const WS_URL = 'wss://stv-backend.onrender.com';
 
 // --- Sayfa Yüklendiğinde Başlat ---
 document.addEventListener('DOMContentLoaded', () => {
@@ -45,7 +45,7 @@ function connectWebSocket() {
     socket.onopen = () => showConnectionStatus(false);
     socket.onclose = () => {
         showConnectionStatus(true, 'Bağlantı kesildi, yeniden deneniyor...');
-        setTimeout(connectWebSocket, 3000);
+        setTimeout(connectWebSocket, 5000);
     };
     socket.onerror = () => showConnectionStatus(true, 'Bağlantı hatası!');
     socket.onmessage = event => handleWebSocketMessage(JSON.parse(event.data));
