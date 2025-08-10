@@ -1,24 +1,23 @@
 // --- Global Değişkenler ---
 let cheaters = [];
-let isLoggedIn = false;
+let authToken = sessionStorage.getItem('stvAuthToken') || null;
 let sortColumn = 'createdAt';
 let sortDirection = 'desc';
 let socket = null;
 let editingCheater = null;
 let confirmCallback = null;
 
-// GÜNCELLEME: Şifre, tek şifrenin SHA-256 hash'i olarak ayarlandı.
-const ADMIN_HASHES = [
-    '9a82645f082e177b960a566418c3538a79854345511e4f4553b6a5120367372b' // "adminstv2020" şifresinin parmak izi
-];
 const WS_URL = 'wss://stv-backend.onrender.com';
+const API_BASE_URL = 'https://stv-backend.onrender.com';
 
 // --- Sayfa Yüklendiğinde Başlat ---
 document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
     connectWebSocket();
-    // Karşılama penceresini her zaman göster
-    showWelcomeModal(); 
+    showWelcomeModal();
+    if (authToken) {
+        updateAdminUI();
+    }
 });
 
 // --- Olay Dinleyicileri ---
@@ -57,8 +56,6 @@ function connectWebSocket() {
 function handleWebSocketMessage(message) {
     const { type, data } = message;
     let toastMessage = '';
-    let needsUpdate = true;
-
     switch (type) {
         case 'INITIAL_DATA': cheaters = data; break;
         case 'CHEATER_ADDED': cheaters.unshift(data); toastMessage = `${data.playerName} eklendi.`; break;
@@ -73,39 +70,16 @@ function handleWebSocketMessage(message) {
             toastMessage = `Hileci silindi.`;
             break;
         }
-        case 'HISTORY_ENTRY_DELETED':
-        case 'HISTORY_ENTRY_UPDATED': {
-            const cheaterIndex = cheaters.findIndex(c => c._id === data._id);
-            if (cheaterIndex !== -1) {
-                cheaters[cheaterIndex] = data;
-                const existingHistoryRow = document.getElementById(`history-${data._id}`);
-                if (existingHistoryRow) {
-                    existingHistoryRow.remove();
-                    const mainRow = document.querySelector(`tr[data-id="${data._id}"]`);
-                    if (mainRow) togglePlayerHistory(mainRow);
-                }
-            }
-            toastMessage = `Tespit geçmişi güncellendi.`;
-            break;
-        }
-        case 'ERROR_OCCURRED': 
-            showToast(data.message, 'error'); 
-            needsUpdate = false;
-            break;
+        case 'ERROR_OCCURRED': showToast(data.message, 'error'); break;
     }
-    
-    if (needsUpdate) {
-        if (toastMessage) showToast(toastMessage, 'success');
-        updateLastUpdateTime();
-        updateDisplay();
-    }
+    if (toastMessage) showToast(toastMessage, 'success');
+    updateLastUpdateTime();
+    updateDisplay();
 }
 
 function sendMessage(type, data) {
     if (socket && socket.readyState === WebSocket.OPEN) {
-        // Admin işlemleri için, mesaja yetkilendirme token'ını ekle
-        const messageWithAuth = { type, data, token: authToken };
-        socket.send(JSON.stringify(messageWithAuth));
+        socket.send(JSON.stringify({ type, data, token: authToken }));
         return true;
     }
     showToast('Sunucu bağlantısı yok!', 'error');
@@ -168,20 +142,11 @@ function deleteCheater(cheaterId) {
     });
 }
 
-function deleteHistoryEntry(cheaterId, historyId) {
-    showConfirmModal('Bu tespit geçmişi kaydı kalıcı olarak silinecek. Emin misiniz?', () => {
-        sendMessage('HISTORY_ENTRY_DELETED', { cheaterId, historyId });
-    });
-}
-
-function editHistoryEntry(cheaterId, historyId) {
-    showToast('Geçmiş düzenleme özelliği için backend güncellemesi gerekir.', 'info');
-}
-
 function togglePlayerHistory(rowElement) {
     const cheaterId = rowElement.dataset.id;
     const existingHistoryRow = document.getElementById(`history-${cheaterId}`);
     const icon = rowElement.querySelector('.history-icon');
+    const isLoggedIn = !!authToken;
 
     document.querySelectorAll('.stv-history-row').forEach(row => { if (row.id !== `history-${cheaterId}`) row.remove(); });
     document.querySelectorAll('.history-icon.rotated').forEach(i => { if (i !== icon) i.classList.remove('rotated'); });
@@ -202,41 +167,13 @@ function togglePlayerHistory(rowElement) {
         historyRow.className = 'stv-history-row';
         const colSpan = isLoggedIn ? 8 : 7;
         
-        const historyTable = cheater.history.map(item => `
-            <tr class="stv-table-row stv-history-item-row">
-                <td class="p-3">${new Date(item.date).toLocaleString('tr-TR')}</td>
-                <td class="p-3">${item.serverName}</td>
-                <td class="p-3">${(item.cheatTypes || []).map(type => `<span class="stv-cheat-type">${type}</span>`).join('')}</td>
-                ${isLoggedIn ? `
-                    <td class="p-3">
-                        <div class="stv-action-buttons">
-                            <button onclick="editHistoryEntry('${cheater._id}', '${item._id}')" class="stv-action-btn stv-edit-btn" title="Geçmişi Düzenle"><i class="fas fa-edit"></i></button>
-                            <button onclick="deleteHistoryEntry('${cheater._id}', '${item._id}')" class="stv-action-btn stv-delete-btn" title="Geçmişi Sil"><i class="fas fa-trash"></i></button>
-                        </div>
-                    </td>
-                ` : ''}
-            </tr>
-        `).join('');
+        const historyContent = cheater.history.map(item => `
+            <div class="stv-history-item">
+                <span class="stv-history-date"><i class="fas fa-calendar-alt mr-2"></i>${new Date(item.date).toLocaleString('tr-TR')}</span>
+                <span class="stv-history-server"><i class="fas fa-server mr-2"></i>${item.serverName}</span>
+            </div>`).join('');
 
-        historyRow.innerHTML = `
-            <td colspan="${colSpan}">
-                <div class="stv-history-container">
-                    <h4 class="stv-history-title"><i class="fas fa-history mr-2"></i>${cheater.playerName} - Tespit Geçmişi</h4>
-                    <table class="stv-inner-table">
-                        <thead>
-                            <tr>
-                                <th class="stv-table-header"><i class="fas fa-calendar-alt mr-2"></i>Tarih</th>
-                                <th class="stv-table-header"><i class="fas fa-server mr-2"></i>Sunucu</th>
-                                <th class="stv-table-header"><i class="fas fa-bug mr-2"></i>Hileler</th>
-                                ${isLoggedIn ? `<th class="stv-table-header"><i class="fas fa-cogs mr-2"></i>İşlemler</th>` : ''}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${historyTable}
-                        </tbody>
-                    </table>
-                </div>
-            </td>`;
+        historyRow.innerHTML = `<td colspan="${colSpan}"><div class="stv-history-container"><h4 class="stv-history-title"><i class="fas fa-history mr-2"></i>${cheater.playerName} - Tespit Geçmişi</h4><div class="stv-history-list">${historyContent}</div></div></td>`;
         rowElement.parentNode.insertBefore(historyRow, rowElement.nextSibling);
     }
 }
@@ -244,7 +181,7 @@ function togglePlayerHistory(rowElement) {
 // --- Modal Kontrol Fonksiyonları ---
 function showWelcomeModal() { document.getElementById('welcomeModal').style.display = 'flex'; }
 function closeWelcomeModal() { document.getElementById('welcomeModal').style.display = 'none'; }
-function toggleAdminPanel() { isLoggedIn ? showAdminPanel() : showAdminLoginModal(); }
+function toggleAdminPanel() { authToken ? showAdminPanel() : showAdminLoginModal(); }
 function showAdminLoginModal() { document.getElementById('adminLoginModal').style.display = 'flex'; document.getElementById('adminPassword').focus(); }
 function closeAdminLoginModal() { document.getElementById('adminLoginModal').style.display = 'none'; document.getElementById('adminPassword').value = ''; }
 function showAdminPanel() { document.getElementById('adminPanelModal').style.display = 'flex'; document.getElementById('cheaterForm').reset(); }
@@ -254,22 +191,40 @@ function showConfirmModal(message, callback) { document.getElementById('confirmM
 function closeConfirmModal() { document.getElementById('confirmModal').style.display = 'none'; confirmCallback = null; }
 function handleConfirmYes() { if (confirmCallback) { confirmCallback(); } closeConfirmModal(); }
 
-// --- Admin Giriş Fonksiyonları ---
+// --- Admin Giriş Fonksiyonları (Sunucuya Bağlı) ---
 async function handleAdminLogin() {
     const password = document.getElementById('adminPassword').value;
-    const passHash = await sha256(password);
-    
-    if (ADMIN_HASHES.includes(passHash)) {
-        isLoggedIn = true;
-        closeAdminLoginModal();
-        updateAdminUI();
-        showToast('Giriş başarılı!', 'success');
-    } else { 
-        showToast('Hatalı şifre!', 'error'); 
+    if (!password) {
+        showToast('Lütfen şifreyi girin.', 'error');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: password })
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.token) {
+            authToken = result.token;
+            sessionStorage.setItem('stvAuthToken', authToken);
+            closeAdminLoginModal();
+            updateAdminUI();
+            showToast('Giriş başarılı!', 'success');
+        } else {
+            showToast(result.message || 'Hatalı şifre!', 'error');
+        }
+    } catch (error) {
+        showToast('Giriş yapılırken bir sunucu hatası oluştu.', 'error');
+        console.error('Login Error:', error);
     }
 }
 
 function updateAdminUI() {
+    const isLoggedIn = !!authToken;
     document.getElementById('adminBtn').innerHTML = `<i class="fas fa-user-shield mr-2"></i> ${isLoggedIn ? 'Admin ✓' : 'Admin'}`;
     document.getElementById('quickAddBtn').style.display = isLoggedIn ? 'flex' : 'none';
     document.getElementById('actionsHeader').style.display = isLoggedIn ? 'table-cell' : 'none';
@@ -309,6 +264,7 @@ function sortTable(column) {
 function updateDisplay() {
     const tableBody = document.getElementById('cheaterTableBody');
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const isLoggedIn = !!authToken;
     
     let filteredCheaters = cheaters.filter(c =>
         (c.playerName && c.playerName.toLowerCase().includes(searchTerm)) ||
@@ -353,13 +309,4 @@ function updateDisplay() {
         `).join('');
     }
     document.getElementById('cheaterCountDisplay').textContent = cheaters.length;
-}
-
-// SHA256 Hash fonksiyonu (Tarayıcının kendi şifreleme özelliğini kullanır)
-async function sha256(message) {
-    const msgBuffer = new TextEncoder().encode(message);                    
-    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    return hashHex;
 }
