@@ -96,3 +96,16 @@ textarea.stv-input-form { min-height: 80px; resize: vertical; }
 .stv-history-title { color: #fbbf24; font-size: 16px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #374151; }
 .stv-history-list { display: flex; flex-direction: column; gap: 12px; }
 .stv-history-item { background: rgba(55, 65, 81, 0.8); padding: 12px 16px; border-radius: 8px; border-left: 3px solid #9900
+/* Tespit Geçmişi İç Tablo Stilleri */
+.stv-inner-table {
+    width: 100%;
+    margin-top: 10px;
+    border-collapse: collapse;
+}
+.stv-inner-table th, .stv-inner-table td {
+    border: 1px solid #444;
+    background-color: #252525;
+}
+.stv-history-item-row:hover {
+    background-color: rgba(153, 0, 0, 0.2) !important;
+}
