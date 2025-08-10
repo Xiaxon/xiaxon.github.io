@@ -7,13 +7,17 @@ let socket = null;
 let editingCheater = null;
 let confirmCallback = null;
 
-const ADMIN_PASSWORDS = ['stv2024admin', 'ljupka2024'];
+// GÜNCELLEME: Şifre, tek şifrenin SHA-256 hash'i olarak ayarlandı.
+const ADMIN_HASHES = [
+    '9a82645f082e177b960a566418c3538a79854345511e4f4553b6a5120367372b' // "adminstv2020" şifresinin parmak izi
+];
 const WS_URL = 'wss://stv-backend.onrender.com';
 
 // --- Sayfa Yüklendiğinde Başlat ---
 document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
     connectWebSocket();
+    // Karşılama penceresini her zaman göster
     showWelcomeModal(); 
 });
 
@@ -53,7 +57,7 @@ function connectWebSocket() {
 function handleWebSocketMessage(message) {
     const { type, data } = message;
     let toastMessage = '';
-    let needsUpdate = true; // Tablonun yeniden çizilip çizilmeyeceğini kontrol eder
+    let needsUpdate = true;
 
     switch (type) {
         case 'INITIAL_DATA': cheaters = data; break;
@@ -69,13 +73,11 @@ function handleWebSocketMessage(message) {
             toastMessage = `Hileci silindi.`;
             break;
         }
-        // YENİ: Geçmiş kaydı silindiğinde veya güncellendiğinde ana veriyi güncellemek için
         case 'HISTORY_ENTRY_DELETED':
         case 'HISTORY_ENTRY_UPDATED': {
             const cheaterIndex = cheaters.findIndex(c => c._id === data._id);
             if (cheaterIndex !== -1) {
-                cheaters[cheaterIndex] = data; // Backend'den gelen güncel oyuncu verisiyle değiştir
-                // Açık olan geçmiş penceresini de yeniden çizmek için
+                cheaters[cheaterIndex] = data;
                 const existingHistoryRow = document.getElementById(`history-${data._id}`);
                 if (existingHistoryRow) {
                     existingHistoryRow.remove();
@@ -99,10 +101,11 @@ function handleWebSocketMessage(message) {
     }
 }
 
-
 function sendMessage(type, data) {
     if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({ type, data }));
+        // Admin işlemleri için, mesaja yetkilendirme token'ını ekle
+        const messageWithAuth = { type, data, token: authToken };
+        socket.send(JSON.stringify(messageWithAuth));
         return true;
     }
     showToast('Sunucu bağlantısı yok!', 'error');
@@ -165,30 +168,21 @@ function deleteCheater(cheaterId) {
     });
 }
 
-// YENİ: Geçmiş kaydını silme fonksiyonu
 function deleteHistoryEntry(cheaterId, historyId) {
     showConfirmModal('Bu tespit geçmişi kaydı kalıcı olarak silinecek. Emin misiniz?', () => {
         sendMessage('HISTORY_ENTRY_DELETED', { cheaterId, historyId });
     });
 }
 
-// YENİ: Geçmiş kaydını düzenleme fonksiyonu (şimdilik ana düzenleme penceresini açar, backend'de geliştirilebilir)
 function editHistoryEntry(cheaterId, historyId) {
-    // Bu özellik için ayrı bir düzenleme penceresi veya mevcut pencerenin
-    // dinamik olarak doldurulması gerekir. Şimdilik ana oyuncuyu düzenleme
-    // penceresini açarak örnek bir işlevsellik sunuyoruz.
-    // Backend'in bu isteği karşılayacak şekilde güncellenmesi gerekir.
-    showToast('Geçmiş düzenleme özelliği henüz aktif değil.', 'info');
-    // Alternatif olarak: showEditModal(cheaterId); 
+    showToast('Geçmiş düzenleme özelliği için backend güncellemesi gerekir.', 'info');
 }
-
 
 function togglePlayerHistory(rowElement) {
     const cheaterId = rowElement.dataset.id;
     const existingHistoryRow = document.getElementById(`history-${cheaterId}`);
     const icon = rowElement.querySelector('.history-icon');
 
-    // Diğer açık geçmişleri kapat
     document.querySelectorAll('.stv-history-row').forEach(row => { if (row.id !== `history-${cheaterId}`) row.remove(); });
     document.querySelectorAll('.history-icon.rotated').forEach(i => { if (i !== icon) i.classList.remove('rotated'); });
 
@@ -208,7 +202,6 @@ function togglePlayerHistory(rowElement) {
         historyRow.className = 'stv-history-row';
         const colSpan = isLoggedIn ? 8 : 7;
         
-        // YENİ: Geçmiş için tablo formatı oluşturuluyor
         const historyTable = cheater.history.map(item => `
             <tr class="stv-table-row stv-history-item-row">
                 <td class="p-3">${new Date(item.date).toLocaleString('tr-TR')}</td>
@@ -224,8 +217,6 @@ function togglePlayerHistory(rowElement) {
                 ` : ''}
             </tr>
         `).join('');
-
-        const colSpanHeader = isLoggedIn ? 4 : 3;
 
         historyRow.innerHTML = `
             <td colspan="${colSpan}">
@@ -250,12 +241,11 @@ function togglePlayerHistory(rowElement) {
     }
 }
 
-
 // --- Modal Kontrol Fonksiyonları ---
 function showWelcomeModal() { document.getElementById('welcomeModal').style.display = 'flex'; }
 function closeWelcomeModal() { document.getElementById('welcomeModal').style.display = 'none'; }
 function toggleAdminPanel() { isLoggedIn ? showAdminPanel() : showAdminLoginModal(); }
-function showAdminLoginModal() { document.getElementById('adminLoginModal').style.display = 'flex'; }
+function showAdminLoginModal() { document.getElementById('adminLoginModal').style.display = 'flex'; document.getElementById('adminPassword').focus(); }
 function closeAdminLoginModal() { document.getElementById('adminLoginModal').style.display = 'none'; document.getElementById('adminPassword').value = ''; }
 function showAdminPanel() { document.getElementById('adminPanelModal').style.display = 'flex'; document.getElementById('cheaterForm').reset(); }
 function closeAdminPanel() { document.getElementById('adminPanelModal').style.display = 'none'; }
@@ -265,14 +255,20 @@ function closeConfirmModal() { document.getElementById('confirmModal').style.dis
 function handleConfirmYes() { if (confirmCallback) { confirmCallback(); } closeConfirmModal(); }
 
 // --- Admin Giriş Fonksiyonları ---
-function handleAdminLogin() {
-    if (ADMIN_PASSWORDS.includes(document.getElementById('adminPassword').value)) {
+async function handleAdminLogin() {
+    const password = document.getElementById('adminPassword').value;
+    const passHash = await sha256(password);
+    
+    if (ADMIN_HASHES.includes(passHash)) {
         isLoggedIn = true;
         closeAdminLoginModal();
         updateAdminUI();
         showToast('Giriş başarılı!', 'success');
-    } else { showToast('Hatalı şifre!', 'error'); }
+    } else { 
+        showToast('Hatalı şifre!', 'error'); 
+    }
 }
+
 function updateAdminUI() {
     document.getElementById('adminBtn').innerHTML = `<i class="fas fa-user-shield mr-2"></i> ${isLoggedIn ? 'Admin ✓' : 'Admin'}`;
     document.getElementById('quickAddBtn').style.display = isLoggedIn ? 'flex' : 'none';
@@ -357,4 +353,13 @@ function updateDisplay() {
         `).join('');
     }
     document.getElementById('cheaterCountDisplay').textContent = cheaters.length;
+}
+
+// SHA256 Hash fonksiyonu (Tarayıcının kendi şifreleme özelliğini kullanır)
+async function sha256(message) {
+    const msgBuffer = new TextEncoder().encode(message);                    
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashHex;
 }
