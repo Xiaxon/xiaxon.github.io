@@ -56,6 +56,8 @@ function connectWebSocket() {
 function handleWebSocketMessage(message) {
     const { type, data } = message;
     let toastMessage = '';
+    let needsUpdate = true;
+
     switch (type) {
         case 'INITIAL_DATA': cheaters = data; break;
         case 'CHEATER_ADDED': cheaters.unshift(data); toastMessage = `${data.playerName} eklendi.`; break;
@@ -70,11 +72,31 @@ function handleWebSocketMessage(message) {
             toastMessage = `Hileci silindi.`;
             break;
         }
-        case 'ERROR_OCCURRED': showToast(data.message, 'error'); break;
+        case 'HISTORY_ENTRY_DELETED': {
+            const cheaterIndex = cheaters.findIndex(c => c._id === data._id);
+            if (cheaterIndex !== -1) {
+                cheaters[cheaterIndex] = data;
+                const existingHistoryRow = document.getElementById(`history-${data._id}`);
+                if (existingHistoryRow) {
+                    existingHistoryRow.remove();
+                    const mainRow = document.querySelector(`tr[data-id="${data._id}"]`);
+                    if (mainRow) togglePlayerHistory(mainRow);
+                }
+            }
+            toastMessage = `Tespit geçmişi güncellendi.`;
+            break;
+        }
+        case 'ERROR_OCCURRED': 
+            showToast(data.message, 'error'); 
+            needsUpdate = false;
+            break;
     }
-    if (toastMessage) showToast(toastMessage, 'success');
-    updateLastUpdateTime();
-    updateDisplay();
+    
+    if (needsUpdate) {
+        if (toastMessage) showToast(toastMessage, 'success');
+        updateLastUpdateTime();
+        updateDisplay();
+    }
 }
 
 function sendMessage(type, data) {
@@ -142,6 +164,16 @@ function deleteCheater(cheaterId) {
     });
 }
 
+function deleteHistoryEntry(cheaterId, historyId) {
+    showConfirmModal('Bu tespit geçmişi kaydı kalıcı olarak silinecek. Emin misiniz?', () => {
+        sendMessage('HISTORY_ENTRY_DELETED', { cheaterId, historyId });
+    });
+}
+
+function editHistoryEntry(cheaterId, historyId) {
+    showToast('Geçmiş düzenleme özelliği için backend güncellemesi gerekir.', 'info');
+}
+
 function togglePlayerHistory(rowElement) {
     const cheaterId = rowElement.dataset.id;
     const existingHistoryRow = document.getElementById(`history-${cheaterId}`);
@@ -167,13 +199,41 @@ function togglePlayerHistory(rowElement) {
         historyRow.className = 'stv-history-row';
         const colSpan = isLoggedIn ? 8 : 7;
         
-        const historyContent = cheater.history.map(item => `
-            <div class="stv-history-item">
-                <span class="stv-history-date"><i class="fas fa-calendar-alt mr-2"></i>${new Date(item.date).toLocaleString('tr-TR')}</span>
-                <span class="stv-history-server"><i class="fas fa-server mr-2"></i>${item.serverName}</span>
-            </div>`).join('');
+        const historyTable = cheater.history.map(item => `
+            <tr class="stv-table-row stv-history-item-row">
+                <td class="p-3">${new Date(item.date).toLocaleString('tr-TR')}</td>
+                <td class="p-3">${item.serverName}</td>
+                <td class="p-3">${(item.cheatTypes || []).map(type => `<span class="stv-cheat-type">${type}</span>`).join('')}</td>
+                ${isLoggedIn ? `
+                    <td class="p-3">
+                        <div class="stv-action-buttons">
+                            <button onclick="editHistoryEntry('${cheater._id}', '${item._id}')" class="stv-action-btn stv-edit-btn" title="Geçmişi Düzenle"><i class="fas fa-edit"></i></button>
+                            <button onclick="deleteHistoryEntry('${cheater._id}', '${item._id}')" class="stv-action-btn stv-delete-btn" title="Geçmişi Sil"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </td>
+                ` : ''}
+            </tr>
+        `).join('');
 
-        historyRow.innerHTML = `<td colspan="${colSpan}"><div class="stv-history-container"><h4 class="stv-history-title"><i class="fas fa-history mr-2"></i>${cheater.playerName} - Tespit Geçmişi</h4><div class="stv-history-list">${historyContent}</div></div></td>`;
+        historyRow.innerHTML = `
+            <td colspan="${colSpan}">
+                <div class="stv-history-container">
+                    <h4 class="stv-history-title"><i class="fas fa-history mr-2"></i>${cheater.playerName} - Tespit Geçmişi</h4>
+                    <table class="stv-inner-table">
+                        <thead>
+                            <tr>
+                                <th class="stv-table-header"><i class="fas fa-calendar-alt mr-2"></i>Tarih</th>
+                                <th class="stv-table-header"><i class="fas fa-server mr-2"></i>Sunucu</th>
+                                <th class="stv-table-header"><i class="fas fa-bug mr-2"></i>Hileler</th>
+                                ${isLoggedIn ? `<th class="stv-table-header"><i class="fas fa-cogs mr-2"></i>İşlemler</th>` : ''}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${historyTable}
+                        </tbody>
+                    </table>
+                </div>
+            </td>`;
         rowElement.parentNode.insertBefore(historyRow, rowElement.nextSibling);
     }
 }
@@ -198,16 +258,13 @@ async function handleAdminLogin() {
         showToast('Lütfen şifreyi girin.', 'error');
         return;
     }
-
     try {
         const response = await fetch(`${API_BASE_URL}/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ password: password })
         });
-
         const result = await response.json();
-
         if (response.ok && result.token) {
             authToken = result.token;
             sessionStorage.setItem('stvAuthToken', authToken);
@@ -281,14 +338,14 @@ function updateDisplay() {
     const colSpan = isLoggedIn ? 8 : 7;
     document.getElementById('actionsHeader').style.display = isLoggedIn ? 'table-cell' : 'none';
     if (filteredCheaters.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="${colSpan}" class="text-center py-10 text-gray-400">Kayıt bulunamadı.</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="${colSpan}" class="text-center py-10 text-gray-400">Yükleniyor veya kayıt bulunamadı...</td></tr>`;
     } else {
         tableBody.innerHTML = filteredCheaters.map(cheater => `
             <tr class="stv-table-row" data-id="${cheater._id}">
                 <td class="p-3">
-                    <span class="stv-player-name ${cheater.detectionCount > 1 ? 'clickable' : ''}" ${cheater.detectionCount > 1 ? `onclick="togglePlayerHistory(this.closest('tr'))"` : ''}>
+                    <span class="stv-player-name ${cheater.history && cheater.history.length > 0 ? 'clickable' : ''}" ${cheater.history && cheater.history.length > 0 ? `onclick="togglePlayerHistory(this.closest('tr'))"` : ''}>
                         ${cheater.playerName}
-                        ${cheater.detectionCount > 1 ? `<i class="fas fa-chevron-down ml-2 history-icon"></i>` : ''}
+                        ${cheater.history && cheater.history.length > 0 ? `<i class="fas fa-chevron-down ml-2 history-icon"></i>` : ''}
                     </span>
                 </td>
                 <td class="p-3"><code>${cheater.steamId}</code></td>
