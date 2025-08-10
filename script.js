@@ -14,8 +14,6 @@ const WS_URL = 'wss://stv-backend.onrender.com';
 document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
     connectWebSocket();
-    
-    // GÜNCELLEME: Hoşgeldin penceresini her zaman göster
     showWelcomeModal(); 
 });
 
@@ -55,6 +53,8 @@ function connectWebSocket() {
 function handleWebSocketMessage(message) {
     const { type, data } = message;
     let toastMessage = '';
+    let needsUpdate = true; // Tablonun yeniden çizilip çizilmeyeceğini kontrol eder
+
     switch (type) {
         case 'INITIAL_DATA': cheaters = data; break;
         case 'CHEATER_ADDED': cheaters.unshift(data); toastMessage = `${data.playerName} eklendi.`; break;
@@ -69,12 +69,36 @@ function handleWebSocketMessage(message) {
             toastMessage = `Hileci silindi.`;
             break;
         }
-        case 'ERROR_OCCURRED': showToast(data.message, 'error'); break;
+        // YENİ: Geçmiş kaydı silindiğinde veya güncellendiğinde ana veriyi güncellemek için
+        case 'HISTORY_ENTRY_DELETED':
+        case 'HISTORY_ENTRY_UPDATED': {
+            const cheaterIndex = cheaters.findIndex(c => c._id === data._id);
+            if (cheaterIndex !== -1) {
+                cheaters[cheaterIndex] = data; // Backend'den gelen güncel oyuncu verisiyle değiştir
+                // Açık olan geçmiş penceresini de yeniden çizmek için
+                const existingHistoryRow = document.getElementById(`history-${data._id}`);
+                if (existingHistoryRow) {
+                    existingHistoryRow.remove();
+                    const mainRow = document.querySelector(`tr[data-id="${data._id}"]`);
+                    if (mainRow) togglePlayerHistory(mainRow);
+                }
+            }
+            toastMessage = `Tespit geçmişi güncellendi.`;
+            break;
+        }
+        case 'ERROR_OCCURRED': 
+            showToast(data.message, 'error'); 
+            needsUpdate = false;
+            break;
     }
-    if (toastMessage) showToast(toastMessage, 'success');
-    updateLastUpdateTime();
-    updateDisplay();
+    
+    if (needsUpdate) {
+        if (toastMessage) showToast(toastMessage, 'success');
+        updateLastUpdateTime();
+        updateDisplay();
+    }
 }
+
 
 function sendMessage(type, data) {
     if (socket && socket.readyState === WebSocket.OPEN) {
@@ -141,11 +165,30 @@ function deleteCheater(cheaterId) {
     });
 }
 
+// YENİ: Geçmiş kaydını silme fonksiyonu
+function deleteHistoryEntry(cheaterId, historyId) {
+    showConfirmModal('Bu tespit geçmişi kaydı kalıcı olarak silinecek. Emin misiniz?', () => {
+        sendMessage('HISTORY_ENTRY_DELETED', { cheaterId, historyId });
+    });
+}
+
+// YENİ: Geçmiş kaydını düzenleme fonksiyonu (şimdilik ana düzenleme penceresini açar, backend'de geliştirilebilir)
+function editHistoryEntry(cheaterId, historyId) {
+    // Bu özellik için ayrı bir düzenleme penceresi veya mevcut pencerenin
+    // dinamik olarak doldurulması gerekir. Şimdilik ana oyuncuyu düzenleme
+    // penceresini açarak örnek bir işlevsellik sunuyoruz.
+    // Backend'in bu isteği karşılayacak şekilde güncellenmesi gerekir.
+    showToast('Geçmiş düzenleme özelliği henüz aktif değil.', 'info');
+    // Alternatif olarak: showEditModal(cheaterId); 
+}
+
+
 function togglePlayerHistory(rowElement) {
     const cheaterId = rowElement.dataset.id;
     const existingHistoryRow = document.getElementById(`history-${cheaterId}`);
     const icon = rowElement.querySelector('.history-icon');
 
+    // Diğer açık geçmişleri kapat
     document.querySelectorAll('.stv-history-row').forEach(row => { if (row.id !== `history-${cheaterId}`) row.remove(); });
     document.querySelectorAll('.history-icon.rotated').forEach(i => { if (i !== icon) i.classList.remove('rotated'); });
 
@@ -165,20 +208,52 @@ function togglePlayerHistory(rowElement) {
         historyRow.className = 'stv-history-row';
         const colSpan = isLoggedIn ? 8 : 7;
         
-        const historyContent = cheater.history.map(item => `
-            <div class="stv-history-item">
-                <span class="stv-history-date"><i class="fas fa-calendar-alt mr-2"></i>${new Date(item.date).toLocaleString('tr-TR')}</span>
-                <span class="stv-history-server"><i class="fas fa-server mr-2"></i>${item.serverName}</span>
-            </div>`).join('');
+        // YENİ: Geçmiş için tablo formatı oluşturuluyor
+        const historyTable = cheater.history.map(item => `
+            <tr class="stv-table-row stv-history-item-row">
+                <td class="p-3">${new Date(item.date).toLocaleString('tr-TR')}</td>
+                <td class="p-3">${item.serverName}</td>
+                <td class="p-3">${(item.cheatTypes || []).map(type => `<span class="stv-cheat-type">${type}</span>`).join('')}</td>
+                ${isLoggedIn ? `
+                    <td class="p-3">
+                        <div class="stv-action-buttons">
+                            <button onclick="editHistoryEntry('${cheater._id}', '${item._id}')" class="stv-action-btn stv-edit-btn" title="Geçmişi Düzenle"><i class="fas fa-edit"></i></button>
+                            <button onclick="deleteHistoryEntry('${cheater._id}', '${item._id}')" class="stv-action-btn stv-delete-btn" title="Geçmişi Sil"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </td>
+                ` : ''}
+            </tr>
+        `).join('');
 
-        historyRow.innerHTML = `<td colspan="${colSpan}"><div class="stv-history-container"><h4 class="stv-history-title"><i class="fas fa-history mr-2"></i>${cheater.playerName} - Tespit Geçmişi</h4><div class="stv-history-list">${historyContent}</div></div></td>`;
+        const colSpanHeader = isLoggedIn ? 4 : 3;
+
+        historyRow.innerHTML = `
+            <td colspan="${colSpan}">
+                <div class="stv-history-container">
+                    <h4 class="stv-history-title"><i class="fas fa-history mr-2"></i>${cheater.playerName} - Tespit Geçmişi</h4>
+                    <table class="stv-inner-table">
+                        <thead>
+                            <tr>
+                                <th class="stv-table-header"><i class="fas fa-calendar-alt mr-2"></i>Tarih</th>
+                                <th class="stv-table-header"><i class="fas fa-server mr-2"></i>Sunucu</th>
+                                <th class="stv-table-header"><i class="fas fa-bug mr-2"></i>Hileler</th>
+                                ${isLoggedIn ? `<th class="stv-table-header"><i class="fas fa-cogs mr-2"></i>İşlemler</th>` : ''}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${historyTable}
+                        </tbody>
+                    </table>
+                </div>
+            </td>`;
         rowElement.parentNode.insertBefore(historyRow, rowElement.nextSibling);
     }
 }
 
+
 // --- Modal Kontrol Fonksiyonları ---
 function showWelcomeModal() { document.getElementById('welcomeModal').style.display = 'flex'; }
-function closeWelcomeModal() { document.getElementById('welcomeModal').style.display = 'none'; localStorage.setItem('stvVisited', 'true'); }
+function closeWelcomeModal() { document.getElementById('welcomeModal').style.display = 'none'; }
 function toggleAdminPanel() { isLoggedIn ? showAdminPanel() : showAdminLoginModal(); }
 function showAdminLoginModal() { document.getElementById('adminLoginModal').style.display = 'flex'; }
 function closeAdminLoginModal() { document.getElementById('adminLoginModal').style.display = 'none'; document.getElementById('adminPassword').value = ''; }
