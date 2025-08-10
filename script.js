@@ -1,7 +1,6 @@
 // --- Global Değişkenler ---
 let cheaters = [];
 let isLoggedIn = false;
-let hasVisited = localStorage.getItem('stvVisited') === 'true';
 let sortColumn = 'createdAt';
 let sortDirection = 'desc';
 let socket = null;
@@ -15,7 +14,9 @@ const WS_URL = 'wss://stv-backend.onrender.com';
 document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
     connectWebSocket();
-    if (!hasVisited) showWelcomeModal();
+    
+    // GÜNCELLEME: Hoşgeldin penceresini her zaman göster
+    showWelcomeModal(); 
 });
 
 // --- Olay Dinleyicileri ---
@@ -154,8 +155,8 @@ function togglePlayerHistory(rowElement) {
     } else {
         const cheater = cheaters.find(c => c._id === cheaterId);
         if (!cheater || !cheater.history || cheater.history.length === 0) {
-             showToast('Bu oyuncu için geçmiş tespit kaydı bulunmuyor.', 'info');
-             return;
+            showToast('Bu oyuncu için geçmiş tespit kaydı bulunmuyor.', 'info');
+            return;
         }
         
         icon?.classList.add('rotated');
@@ -177,7 +178,7 @@ function togglePlayerHistory(rowElement) {
 
 // --- Modal Kontrol Fonksiyonları ---
 function showWelcomeModal() { document.getElementById('welcomeModal').style.display = 'flex'; }
-function closeWelcomeModal() { document.getElementById('welcomeModal').style.display = 'none'; localStorage.setItem('stvVisited', 'true'); hasVisited = true; }
+function closeWelcomeModal() { document.getElementById('welcomeModal').style.display = 'none'; localStorage.setItem('stvVisited', 'true'); }
 function toggleAdminPanel() { isLoggedIn ? showAdminPanel() : showAdminLoginModal(); }
 function showAdminLoginModal() { document.getElementById('adminLoginModal').style.display = 'flex'; }
 function closeAdminLoginModal() { document.getElementById('adminLoginModal').style.display = 'none'; document.getElementById('adminPassword').value = ''; }
