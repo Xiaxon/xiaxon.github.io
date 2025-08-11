@@ -154,3 +154,11 @@ textarea.stv-input-form { min-height: 80px; resize: vertical; }
     color: #9ca3af;
     margin-top: 4px;
 }
+/* --- YENİ EKLENEN STİL: Modal Alt Başlığı --- */
+.stv-modal-subtitle {
+    font-size: 1.25rem; /* Yazı fontunu büyütür (1rem standarttır) */
+    font-weight: 500;
+    color: #e57373;     /* Göze batmayan, soluk bir kırmızı tonu */
+    margin-top: -10px;  /* Başlıkla arasını biraz kapatır */
+    margin-bottom: 25px;/* Altındaki paragrafla arasını açar */
+}
