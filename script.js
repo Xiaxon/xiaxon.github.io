@@ -39,14 +39,9 @@ function setupEventListeners() {
     document.querySelectorAll('.stv-table-header[data-sort]').forEach(th => {
         th.addEventListener('click', () => sortTable(th.dataset.sort));
     });
-    const editHistoryForm = document.getElementById('editHistoryForm');
-    if(editHistoryForm) {
-        editHistoryForm.addEventListener('submit', handleHistoryEditSubmit);
-    }
-    const editHistoryCancelBtn = document.getElementById('editHistoryCancelBtn');
-    if(editHistoryCancelBtn) {
-        editHistoryCancelBtn.addEventListener('click', closeEditHistoryModal);
-    }
+    // Form ve iptal butonu için olay dinleyicileri
+    document.getElementById('editHistoryForm').addEventListener('submit', handleHistoryEditSubmit);
+    document.getElementById('editHistoryCancelBtn').addEventListener('click', closeEditHistoryModal);
 }
 
 // --- WebSocket Fonksiyonları ---
@@ -86,6 +81,7 @@ function handleWebSocketMessage(message) {
             const cheaterIndex = cheaters.findIndex(c => c._id === data._id);
             if (cheaterIndex !== -1) {
                 cheaters[cheaterIndex] = data;
+                // Açık olan geçmiş penceresini de yeniden çizmek için
                 const existingHistoryRow = document.querySelector(`.history-for-${data._id}`);
                 if (existingHistoryRow) {
                     const mainRow = document.querySelector(`tr[data-id="${data._id}"]`);
