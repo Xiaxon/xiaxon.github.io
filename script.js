@@ -59,8 +59,6 @@ function connectWebSocket() {
 function handleWebSocketMessage(message) {
     const { type, data } = message;
     let toastMessage = '';
-    let needsUpdate = true;
-
     switch (type) {
         case 'INITIAL_DATA': cheaters = data; break;
         case 'CHEATER_ADDED': cheaters.unshift(data); toastMessage = `${data.playerName} eklendi.`; break;
@@ -94,17 +92,11 @@ function handleWebSocketMessage(message) {
             toastMessage = `Tespit geçmişi güncellendi.`;
             break;
         }
-        case 'ERROR_OCCURRED': 
-            showToast(data.message, 'error'); 
-            needsUpdate = false;
-            break;
+        case 'ERROR_OCCURRED': showToast(data.message, 'error'); break;
     }
-    
-    if (needsUpdate) {
-        if (toastMessage) showToast(toastMessage, 'success');
-        updateLastUpdateTime();
-        updateDisplay();
-    }
+    if (toastMessage) showToast(toastMessage, 'success');
+    updateLastUpdateTime();
+    updateDisplay();
 }
 
 function sendMessage(type, data) {
@@ -306,7 +298,7 @@ function updateAdminUI() {
 // --- Arayüz Güncelleme ve Yardımcı Fonksiyonlar ---
 function showToast(message, type = 'info') {
     const toast = document.createElement('div');
-    toast.style.cssText = `position: fixed; top: 20px; right: 20px; background: ${type === 'error' ? '#b91c1c' : type === 'success' ? '#16a34a' : '#2563eb'}; color: white; padding: 14px 22px; border-radius: 8px; z-index: 10001; font-weight: 500; box-shadow: 0 5px 15px rgba(0,0,0,0.3); transform: translateX(120%); transition: transform 0.4s ease;`;
+    toast.style.cssText = `position: fixed; top: 20px; right: 20px; background: ${type === 'error' ? '#b91c1c' : type === 'success' ? '#16a_4a' : '#2563eb'}; color: white; padding: 14px 22px; border-radius: 8px; z-index: 10001; font-weight: 500; box-shadow: 0 5px 15px rgba(0,0,0,0.3); transform: translateX(120%); transition: transform 0.4s ease;`;
     toast.textContent = message;
     document.body.appendChild(toast);
     setTimeout(() => { toast.style.transform = 'translateX(0)'; }, 100);
