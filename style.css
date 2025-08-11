@@ -83,13 +83,51 @@ textarea.stv-input-form { min-height: 80px; resize: vertical; }
     font-size: 0.875rem;
 }
 
-/* Tablo Stilleri */
-.stv-table-container { background: rgba(25, 25, 25, 0.95); border-radius: 15px; overflow-x: auto; border: 1px solid #660000; }
-.stv-table { width: 100%; border-collapse: collapse; color: white; }
-.stv-table-header { background: linear-gradient(135deg, #660000, #990000); color: white; padding: 15px; font-weight: 600; text-align: left; cursor: pointer; white-space: nowrap; }
-.stv-table-row { border-bottom: 1px solid #333333; transition: background-color 0.2s ease; }
+/* --- TABLO STİLLERİ GÜNCELLENDİ --- */
+.stv-table-container { 
+    background: rgba(25, 25, 25, 0.95); 
+    border-radius: 15px; 
+    overflow-x: auto; 
+    border: 1px solid #660000; 
+}
+.stv-table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    color: white;
+    table-layout: fixed; /* Sütun genişliklerini sabitler */
+}
+.stv-table-header { 
+    background: linear-gradient(135deg, #660000, #990000); 
+    color: white; 
+    padding: 12px 10px; /* Padding azaltıldı */
+    font-weight: 600; 
+    text-align: left; 
+    cursor: pointer; 
+    white-space: nowrap; 
+}
+.stv-table-row { 
+    border-bottom: 1px solid #333333; 
+    transition: background-color 0.2s ease; 
+}
 .stv-table-row:hover { background: rgba(153, 0, 0, 0.1); }
-.stv-table td { padding: 12px 15px; vertical-align: middle; }
+.stv-table td { 
+    padding: 10px 10px; /* Padding azaltıldı */
+    vertical-align: middle;
+    font-size: 0.9em; /* Yazı boyutu küçültüldü */
+    word-wrap: break-word; /* Uzun kelimeleri kır */
+}
+
+/* Sütun genişlikleri */
+.stv-table th:nth-child(1), .stv-table td:nth-child(1) { width: 15%; } /* Oyuncu Adı */
+.stv-table th:nth-child(2), .stv-table td:nth-child(2) { width: 15%; } /* Steam ID */
+.stv-table th:nth-child(3), .stv-table td:nth-child(3) { width: 10%; } /* Steam Profil */
+.stv-table th:nth-child(4), .stv-table td:nth-child(4) { width: 20%; } /* Son Sunucu */
+.stv-table th:nth-child(5), .stv-table td:nth-child(5) { width: 8%; text-align: center;} /* Tespit Sayısı */
+.stv-table th:nth-child(6), .stv-table td:nth-child(6) { width: 12%; } /* Hile Türleri */
+.stv-table th:nth-child(7), .stv-table td:nth-child(7) { width: 12%; } /* Fungun Rapor */
+.stv-table th:nth-child(8), .stv-table td:nth-child(8) { width: 8%; } /* İşlemler */
+
+
 .stv-player-name.clickable { color: #60a5fa; cursor: pointer; transition: color 0.2s ease; display: inline-flex; align-items: center; gap: 8px; }
 .stv-player-name.clickable:hover { color: #93c5fd; }
 .history-icon { transition: transform 0.3s ease; font-size: 12px; }
@@ -100,7 +138,6 @@ textarea.stv-input-form { min-height: 80px; resize: vertical; }
 /* Geçmişi Görüntüleme Stilleri */
 .stv-history-row {
     background-color: rgba(40, 40, 40, 0.5) !important;
-    font-size: 0.9em;
 }
 .stv-history-row:hover {
     background-color: rgba(153, 0, 0, 0.25) !important;
@@ -114,38 +151,6 @@ textarea.stv-input-form { min-height: 80px; resize: vertical; }
 }
 .stv-history-row td:first-child::before {
     content: '\f178';
-    font-family: 'Font Awesome 6 Free';
-    font-weight: 900;
-    position: absolute;
-    left: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #ff4444;
-}
-.stv-history-date-small {
-    display: block;
-    font-size: 0.8em;
-    color: #9ca3af;
-    margin-top: 4px;
-}
-/* --- YENİ EKLENEN STİLLER: Gelişmiş Tespit Geçmişi Satırları --- */
-.stv-history-row {
-    background-color: rgba(40, 40, 40, 0.5) !important; /* Ana satırdan biraz daha koyu */
-    font-size: 0.9em; /* Yazıları biraz daha küçük yap */
-}
-.stv-history-row:hover {
-    background-color: rgba(153, 0, 0, 0.25) !important; /* Üzerine gelince vurgu */
-}
-.stv-history-row td {
-    border-color: #444; /* Çizgileri daha belirsiz yap */
-}
-.stv-history-row td:first-child {
-    padding-left: 35px !important; /* Soldan daha fazla boşluk bırakarak hiyerarşi hissi verir */
-    position: relative;
-}
-/* Satırın başına daha belirgin bir ikon ekler */
-.stv-history-row td:first-child::before {
-    content: '\f178'; /* FontAwesome'dan sağa ok ikonu */
     font-family: 'Font Awesome 6 Free';
     font-weight: 900;
     position: absolute;
