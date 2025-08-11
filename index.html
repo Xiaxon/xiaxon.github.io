@@ -12,7 +12,9 @@
 <body>
     <div id="welcomeModal" class="stv-modal" style="display: none;">
         <div class="stv-modal-content">
-            <h2 class="text-4xl font-bold text-red-400 mb-5"><i class="fas fa-shield-alt mr-3"><color=red></i>STV HİLEYLE MÜCADELE Siteye giriş yaptığınızda ilk 30-50 saniye liste boş olabilir, bekleyin azıcık.</color=red></h2>
+            <h2 class="text-4xl font-bold text-red-400 mb-5"><i class="fas fa-shield-alt mr-3"></i>STV HİLEYLE MÜCADELE</h2>
+            <p class="stv-modal-subtitle">Siteye giriş yaptığınızda ilk 30-50 saniye liste boş olabilir, bekleyin azıcık.</p>
+            
             <p class="text-gray-300 mb-4 text-lg">Herkesin bildiği gibi, son zamanlarda artan hileci orospu evlatlarıyla mücadele etmek için bu siteyi kurduk.</p>
             <p class="text-gray-300 mb-4 text-lg">Oyun zevkimizi yerle bir eden bu yavşakları tek tek buraya yazmaya çalıştım. Liste sürekli güncellenecek, siz de buradan takip edebileceksiniz.</p>
             <p class="text-gray-300 mb-4 text-lg">Destek olmak istiyorsanız, bu tipleri ortamlarınıza ya da klanlarınıza almayın.</p>
@@ -34,7 +36,6 @@
             </div>
         </div>
     </div>
-
     <div id="adminPanelModal" class="stv-modal" style="display: none;">
         <div class="stv-modal-content max-w-4xl">
             <h2 class="text-4xl font-bold text-red-400 mb-6"><i class="fas fa-user-plus mr-3"></i>Yeni Hileci Ekle</h2>
@@ -54,7 +55,6 @@
             </form>
         </div>
     </div>
-
     <div id="editModal" class="stv-modal" style="display: none;">
         <div class="stv-modal-content max-w-4xl">
             <h2 class="text-4xl font-bold text-yellow-400 mb-6"><i class="fas fa-edit mr-3"></i>Hileci Düzenle</h2>
@@ -75,7 +75,6 @@
             </form>
         </div>
     </div>
-    
     <div id="editHistoryModal" class="stv-modal" style="display: none;">
         <div class="stv-modal-content max-w-lg">
             <h2 class="text-3xl font-bold text-yellow-400 mb-6"><i class="fas fa-history mr-3"></i>Tespit Geçmişini Düzenle</h2>
@@ -107,25 +106,21 @@
             </div>
         </div>
     </div>
-
     <a href="https://discord.gg/Gasyz7nTnt" target="_blank" rel="noopener noreferrer" class="stv-social-btn stv-discord-btn"><i class="fab fa-discord text-lg mr-2"></i>Discord</a>
-    <div class="stv-admin-info">YAPIMCI: XİAXON - LJUPKA - SELAMKİMSENN</div>
+    <div class="stv-admin-info">YAPIMCI: XİAXON - LJUPKA - SELAMKİMSEN</div>
     <a href="https://www.youtube.com/@xiaxonn" target="_blank" rel="noopener noreferrer" class="stv-social-btn stv-youtube-btn"><i class="fab fa-youtube text-lg mr-2"></i>Xiaxon</a>
     <div class="admin-actions-container">
         <button id="adminBtn" class="stv-social-btn stv-admin-btn"><i class="fas fa-user-shield text-lg mr-2"></i>Admin</button>
         <button id="quickAddBtn" class="stv-social-btn stv-quick-add-btn" style="display: none;" title="Hızlı Ekle"><i class="fas fa-plus"></i></button>
     </div>
-
     <div class="min-h-screen stv-gradient-bg">
         <div class="container mx-auto px-5 py-5 max-w-7xl">
             <header class="main-header">
                 <h1 class="text-4xl font-bold text-white mb-3"><i class="fas fa-crosshairs mr-3"></i>STV HİLEYLE MÜCADELE</h1>
                 <p class="text-gray-300 text-lg">Burası hileci orospu evlatlarını sergilediğimiz bir liste. İstediğinizi arama kısmından Steam ID veya nick ile arayıp bulabilirsiniz.</p>
             </header>
-
             <div class="flex justify-center items-center mb-8"><div class="relative w-full max-w-md"><input type="text" id="searchInput" class="stv-input pl-12" placeholder="Oyuncu adı veya Steam ID ile ara..." /><i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500"></i></div></div>
             <div id="connectionStatus" class="text-center mb-4" style="display: none;"></div>
-
             <div class="stv-table-container">
                 <table class="stv-table">
                     <thead>
@@ -145,7 +140,6 @@
                     </tbody>
                 </table>
             </div>
-
             <footer class="main-footer">
                 <p>STV HİLEYLE MÜCADELE - <span id="cheaterCountDisplay">0</span> hileci listeleniyor.</p>
                 <p>Son Güncelleme: <span id="lastUpdateTime">-</span></p>
