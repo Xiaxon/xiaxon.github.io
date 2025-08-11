@@ -128,3 +128,35 @@ textarea.stv-input-form { min-height: 80px; resize: vertical; }
     color: #9ca3af;
     margin-top: 4px;
 }
+/* --- YENİ EKLENEN STİLLER: Gelişmiş Tespit Geçmişi Satırları --- */
+.stv-history-row {
+    background-color: rgba(40, 40, 40, 0.5) !important; /* Ana satırdan biraz daha koyu */
+    font-size: 0.9em; /* Yazıları biraz daha küçük yap */
+}
+.stv-history-row:hover {
+    background-color: rgba(153, 0, 0, 0.25) !important; /* Üzerine gelince vurgu */
+}
+.stv-history-row td {
+    border-color: #444; /* Çizgileri daha belirsiz yap */
+}
+.stv-history-row td:first-child {
+    padding-left: 35px !important; /* Soldan daha fazla boşluk bırakarak hiyerarşi hissi verir */
+    position: relative;
+}
+/* Satırın başına daha belirgin bir ikon ekler */
+.stv-history-row td:first-child::before {
+    content: '\f178'; /* FontAwesome'dan sağa ok ikonu */
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #ff4444;
+}
+.stv-history-date-small {
+    display: block;
+    font-size: 0.8em;
+    color: #9ca3af;
+    margin-top: 4px;
+}
