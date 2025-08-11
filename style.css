@@ -45,6 +45,13 @@ textarea.stv-input-form { min-height: 80px; resize: vertical; }
 .stv-admin-form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; text-align: left; }
 .stv-form-group { display: flex; flex-direction: column; }
 .stv-form-label { font-weight: 700; font-size: 14px; margin-bottom: 8px; }
+.stv-modal-subtitle {
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: #e57373;
+    margin-top: 8px;
+    margin-bottom: 30px;
+}
 
 /* Sabit Butonlar ve Pozisyonlama */
 .stv-social-btn { position: fixed; top: 20px; color: white; padding: 10px 16px; border-radius: 25px; text-decoration: none; font-weight: 600; z-index: 999; display: flex; align-items: center; gap: 8px; transition: all 0.3s ease; border: none; cursor: pointer; }
@@ -93,41 +100,31 @@ textarea.stv-input-form { min-height: 80px; resize: vertical; }
 /* Geçmişi Görüntüleme Stilleri */
 .stv-history-row {
     background-color: rgba(40, 40, 40, 0.5) !important;
+    font-size: 0.9em;
 }
 .stv-history-row:hover {
-    background-color: rgba(153, 0, 0, 0.2) !important;
+    background-color: rgba(153, 0, 0, 0.25) !important;
+}
+.stv-history-row td {
+    border-color: #444;
 }
 .stv-history-row td:first-child {
-    padding-left: 30px !important;
+    padding-left: 35px !important;
     position: relative;
 }
 .stv-history-row td:first-child::before {
-    content: '\f105';
+    content: '\f178';
     font-family: 'Font Awesome 6 Free';
     font-weight: 900;
     position: absolute;
-    left: 12px;
+    left: 15px;
     top: 50%;
     transform: translateY(-50%);
     color: #ff4444;
 }
-.stv-history-container { padding: 20px; }
-.stv-history-title { color: #fbbf24; font-size: 16px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #374151; }
-.stv-inner-table {
-    width: 100%;
-    margin-top: 10px;
-    border-collapse: collapse;
-}
-.stv-inner-table th, .stv-inner-table td {
-    border: 1px solid #444;
-    background-color: #252525;
-}
-
-/* --- DÜZENLENEN BÖLÜM --- */
-.stv-modal-subtitle {
-    font-size: 1.25rem;
-    font-weight: 500;
-    color: #e57373;
-    margin-top: 8px; /* Başlıkla arasını açmak için negatif değer pozitife çevrildi */
-    margin-bottom: 30px;
+.stv-history-date-small {
+    display: block;
+    font-size: 0.8em;
+    color: #9ca3af;
+    margin-top: 4px;
 }
