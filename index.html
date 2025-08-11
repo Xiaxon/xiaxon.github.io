@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>STV HİLEYLE MÜCADELE - CS 1.6 Hileci Takip Sistemi</title>
+    <title>STV HİLEYLE MÜCADELE</title>
     <meta name="description" content="Burası hileci orospu evlatlarını sergilediğimiz bir liste. İstediğinizi arama kısmından Steam ID veya nick ile arayıp bulabilirsiniz.">
     <link rel="icon" href="favicon.png" type="image/png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -12,10 +12,10 @@
 <body>
     <div id="welcomeModal" class="stv-modal" style="display: none;">
         <div class="stv-modal-content">
-            <h2 class="text-4xl font-bold text-red-400 mb-5"><i class="fas fa-shield-alt mr-3"></i>STV HİLEYLE MÜCADELE</h2>
+            <h2 class="text-4xl font-bold text-red-400 mb-5"><i class="fas fa-shield-alt mr-3"><color=red></i>STV HİLEYLE MÜCADELE Siteye giriş yaptığınızda ilk 30-50 saniye liste boş olabilir, bekleyin azıcık.</color=red></h2>
             <p class="text-gray-300 mb-4 text-lg">Herkesin bildiği gibi, son zamanlarda artan hileci orospu evlatlarıyla mücadele etmek için bu siteyi kurduk.</p>
             <p class="text-gray-300 mb-4 text-lg">Oyun zevkimizi yerle bir eden bu yavşakları tek tek buraya yazmaya çalıştım. Liste sürekli güncellenecek, siz de buradan takip edebileceksiniz.</p>
-            <p class="text-gray-300 mb-4 text-lg">Siteye giriş yaptığınızda ilk 30-50 saniye liste boş olabilir, bekleyin azıcık. Destek olmak istiyorsanız, bu tipleri ortamlarınıza ya da klanlarınıza almayın.</p>
+            <p class="text-gray-300 mb-4 text-lg">Destek olmak istiyorsanız, bu tipleri ortamlarınıza ya da klanlarınıza almayın.</p>
             <p class="text-gray-300 mb-4 text-lg">Eklemek istediğiniz isimler olursa, Discord'a gelin ve yazın.</p>
             <p class="text-gray-300 mb-4 text-lg font-bold">Hepinizi seviyorum.</p>
             <p class="text-red-400 font-bold text-lg mb-6">STV her zaman izliyor.</p>
@@ -76,6 +76,27 @@
         </div>
     </div>
     
+    <div id="editHistoryModal" class="stv-modal" style="display: none;">
+        <div class="stv-modal-content max-w-lg">
+            <h2 class="text-3xl font-bold text-yellow-400 mb-6"><i class="fas fa-history mr-3"></i>Tespit Geçmişini Düzenle</h2>
+            <form id="editHistoryForm">
+                <div class="stv-admin-form-grid" style="grid-template-columns: 1fr;">
+                    <div class="stv-form-group">
+                        <label class="stv-form-label">Sunucu Adı *</label>
+                        <input type="text" id="editHistoryServerName" class="stv-input-form" required />
+                    </div>
+                    <div class="stv-form-group">
+                        <label class="stv-form-label">Hile Türleri</label>
+                        <input type="text" id="editHistoryCheatTypes" class="stv-input-form" placeholder="Virgülle ayırın" />
+                    </div>
+                </div>
+                <div class="flex gap-4 justify-center flex-wrap mt-6">
+                    <button type="submit" class="stv-btn-primary px-8 py-4"><i class="fas fa-save mr-2"></i>Geçmişi Kaydet</button>
+                    <button type="button" id="editHistoryCancelBtn" class="stv-btn-secondary px-8 py-4"><i class="fas fa-times mr-2"></i>İptal</button>
+                </div>
+            </form>
+        </div>
+    </div>
     <div id="confirmModal" class="stv-modal" style="display: none;">
         <div class="stv-modal-content max-w-md">
             <h2 class="text-2xl font-bold text-red-400 mb-4"><i class="fas fa-exclamation-triangle mr-2"></i>Onay Gerekiyor</h2>
