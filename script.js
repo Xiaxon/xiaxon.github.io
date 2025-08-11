@@ -39,7 +39,6 @@ function setupEventListeners() {
     document.querySelectorAll('.stv-table-header[data-sort]').forEach(th => {
         th.addEventListener('click', () => sortTable(th.dataset.sort));
     });
-    // Yeni olay dinleyicileri
     document.getElementById('editHistoryForm').addEventListener('submit', handleHistoryEditSubmit);
     document.getElementById('editHistoryCancelBtn').addEventListener('click', closeEditHistoryModal);
 }
