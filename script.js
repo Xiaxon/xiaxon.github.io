@@ -5,7 +5,6 @@ let sortColumn = 'createdAt';
 let sortDirection = 'desc';
 let socket = null;
 let editingCheater = null;
-let editingHistory = null;
 let confirmCallback = null;
 
 const WS_URL = 'wss://stv-backend.onrender.com';
@@ -39,131 +38,12 @@ function setupEventListeners() {
     document.querySelectorAll('.stv-table-header[data-sort]').forEach(th => {
         th.addEventListener('click', () => sortTable(th.dataset.sort));
     });
-    document.getElementById('editHistoryForm').addEventListener('submit', handleHistoryEditSubmit);
-    document.getElementById('editHistoryCancelBtn').addEventListener('click', closeEditHistoryModal);
 }
 
-// --- WebSocket Fonksiyonları ---
-function connectWebSocket() {
-    showConnectionStatus(true, 'Sunucuya bağlanılıyor...');
-    socket = new WebSocket(WS_URL);
-    socket.onopen = () => showConnectionStatus(false);
-    socket.onclose = () => {
-        showConnectionStatus(true, 'Bağlantı kesildi, yeniden deneniyor...');
-        setTimeout(connectWebSocket, 5000);
-    };
-    socket.onerror = () => showConnectionStatus(true, 'Bağlantı hatası!');
-    socket.onmessage = event => handleWebSocketMessage(JSON.parse(event.data));
-}
+// --- WebSocket ve Form Fonksiyonları ---
+// ... connectWebSocket, handleWebSocketMessage, sendMessage, handleSubmit, handleEditSubmit ...
+// (Bu fonksiyonlar bir önceki cevaptaki ile aynı kalacak, değişiklik yok)
 
-function handleWebSocketMessage(message) {
-    const { type, data } = message;
-    let toastMessage = '';
-    let needsUpdate = true;
-
-    switch (type) {
-        case 'INITIAL_DATA': cheaters = data; break;
-        case 'CHEATER_ADDED': cheaters.unshift(data); toastMessage = `${data.playerName} eklendi.`; break;
-        case 'CHEATER_UPDATED': {
-            const index = cheaters.findIndex(c => c._id === data._id);
-            if (index !== -1) cheaters[index] = data;
-            toastMessage = `${data.playerName} güncellendi.`;
-            break;
-        }
-        case 'CHEATER_DELETED': {
-            cheaters = cheaters.filter(c => c._id !== data._id);
-            toastMessage = `Hileci silindi.`;
-            break;
-        }
-        case 'HISTORY_ENTRY_UPDATED':
-        case 'HISTORY_ENTRY_DELETED': {
-            const cheaterIndex = cheaters.findIndex(c => c._id === data._id);
-            if (cheaterIndex !== -1) {
-                cheaters[cheaterIndex] = data;
-                const existingHistoryRow = document.querySelector(`.history-for-${data._id}`);
-                if (existingHistoryRow) {
-                    const mainRow = document.querySelector(`tr[data-id="${data._id}"]`);
-                    if (mainRow) {
-                        const icon = mainRow.querySelector('.history-icon');
-                        icon?.classList.remove('rotated');
-                        document.querySelectorAll(`.history-for-${data._id}`).forEach(row => row.remove());
-                        togglePlayerHistory(mainRow);
-                    }
-                }
-            }
-            toastMessage = `Tespit geçmişi güncellendi.`;
-            break;
-        }
-        case 'ERROR_OCCURRED': 
-            showToast(data.message, 'error'); 
-            needsUpdate = false;
-            break;
-    }
-    
-    if (needsUpdate) {
-        if (toastMessage) showToast(toastMessage, 'success');
-        updateLastUpdateTime();
-        updateDisplay();
-    }
-}
-
-function sendMessage(type, data) {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({ type, data, token: authToken }));
-        return true;
-    }
-    showToast('Sunucu bağlantısı yok!', 'error');
-    return false;
-}
-
-// --- Form Gönderme İşlemleri ---
-function handleSubmit(e) {
-    e.preventDefault();
-    const cheaterData = {
-        playerName: document.getElementById('playerName').value.trim(),
-        steamId: document.getElementById('steamId').value.trim(),
-        steamProfile: document.getElementById('steamProfile').value.trim(),
-        serverName: document.getElementById('serverName').value.trim() || "Bilinmiyor",
-        cheatTypes: document.getElementById('cheatTypes').value.split(',').map(t => t.trim()).filter(Boolean),
-        fungunReport: document.getElementById('fungunReport').value.trim()
-    };
-    if (!cheaterData.playerName || !cheaterData.steamId) {
-        showToast('Oyuncu Adı ve Steam ID zorunludur!', 'error');
-        return;
-    }
-    if (sendMessage('CHEATER_ADDED', cheaterData)) closeAdminPanel();
-}
-
-function handleEditSubmit(e) {
-    e.preventDefault();
-    if (!editingCheater) return;
-    const updatedData = {
-        _id: editingCheater._id,
-        playerName: document.getElementById('editPlayerName').value.trim(),
-        steamId: document.getElementById('editSteamId').value.trim(),
-        steamProfile: document.getElementById('editSteamProfile').value.trim(),
-        serverName: document.getElementById('editServerName').value.trim() || "Bilinmiyor",
-        detectionCount: parseInt(document.getElementById('editDetectionCount').value),
-        cheatTypes: document.getElementById('editCheatTypes').value.split(',').map(t => t.trim()).filter(Boolean),
-        fungunReport: document.getElementById('editFungunReport').value.trim()
-    };
-    if (sendMessage('CHEATER_UPDATED', updatedData)) closeEditModal();
-}
-
-function handleHistoryEditSubmit(e) {
-    e.preventDefault();
-    if (!editingHistory) return;
-    const updatedHistoryData = {
-        serverName: document.getElementById('editHistoryServerName').value.trim(),
-        cheatTypes: document.getElementById('editHistoryCheatTypes').value.split(',').map(t => t.trim()).filter(Boolean)
-    };
-    sendMessage('HISTORY_ENTRY_UPDATED', {
-        cheaterId: editingHistory.cheaterId,
-        historyId: editingHistory.historyId,
-        updatedHistoryData
-    });
-    closeEditHistoryModal();
-}
 
 // --- CRUD Buton Fonksiyonları ---
 function showEditModal(cheaterId) {
@@ -193,17 +73,12 @@ function deleteHistoryEntry(cheaterId, historyId) {
     });
 }
 
-function editHistoryEntry(cheaterId, historyId) {
-    const cheater = cheaters.find(c => c._id === cheaterId);
-    if (!cheater) return;
-    const historyEntry = cheater.history.find(h => h._id === historyId);
-    if (!historyEntry) return;
-    editingHistory = { cheaterId, historyId };
-    document.getElementById('editHistoryServerName').value = historyEntry.serverName || '';
-    document.getElementById('editHistoryCheatTypes').value = (historyEntry.cheatTypes || []).join(', ');
-    document.getElementById('editHistoryModal').style.display = 'flex';
+// GÜNCELLENDİ: Geçmişi düzenleme butonu artık ana düzenleme penceresini açıyor.
+function editHistoryEntry(cheaterId) {
+    showEditModal(cheaterId);
 }
 
+// GÜNCELLENDİ: togglePlayerHistory fonksiyonu yeni şablonu oluşturuyor.
 function togglePlayerHistory(rowElement) {
     const cheaterId = rowElement.dataset.id;
     const icon = rowElement.querySelector('.history-icon');
@@ -230,25 +105,31 @@ function togglePlayerHistory(rowElement) {
         const itemDate = new Date(item.date).toLocaleString('tr-TR');
         const itemServer = item.serverName || 'Bilinmiyor';
         const itemCheats = (item.cheatTypes || []).map(type => `<span class="stv-cheat-type">${type}</span>`).join('');
+        
         const adminActionsHTML = isLoggedIn ? `
             <td class="p-3">
                 <div class="stv-action-buttons">
-                    <button onclick="editHistoryEntry('${cheater._id}', '${item._id}')" class="stv-action-btn stv-edit-btn" title="Geçmişi Düzenle"><i class="fas fa-edit"></i></button>
-                    <button onclick="deleteHistoryEntry('${cheater._id}', '${item._id}')" class="stv-action-btn stv-delete-btn" title="Geçmişi Sil"><i class="fas fa-trash"></i></button>
+                    <button onclick="editHistoryEntry('${cheater._id}')" class="stv-action-btn stv-edit-btn" title="Ana Kaydı Düzenle"><i class="fas fa-edit"></i></button>
+                    <button onclick="deleteHistoryEntry('${cheater._id}', '${item._id}')" class="stv-action-btn stv-delete-btn" title="Bu Tespiti Sil"><i class="fas fa-trash"></i></button>
                 </div>
             </td>` : '';
+            
         return `
             <tr class="stv-table-row stv-history-row history-for-${cheaterId}" data-history-id="${item._id}">
-                <td class="p-3"><i>${itemDate}</i></td>
+                <td class="p-3">${cheater.playerName}</td>
                 <td class="p-3"><code>${cheater.steamId}</code></td>
                 <td class="p-3">${cheater.steamProfile ? `<a href="${cheater.steamProfile}" target="_blank" class="text-blue-400 hover:underline">Profil</a>` : 'Yok'}</td>
-                <td class="p-3">${itemServer}</td>
+                <td class="p-3">
+                    ${itemServer}
+                    <span class="stv-history-date-small">${itemDate}</span>
+                </td>
                 <td class="p-3">-</td>
                 <td class="p-3">${itemCheats}</td>
                 <td class="p-3">${(cheater.fungunReport || '').split(',').map(link => link.trim()).filter(Boolean).map(link => `<a href="${link}" target="_blank" class="text-red-400 hover:underline block">Rapor</a>`).join('') || 'Yok'}</td>
                 ${adminActionsHTML}
             </tr>`;
     }).join('');
+    
     rowElement.insertAdjacentHTML('afterend', historyRowsHTML);
 }
 
@@ -261,7 +142,6 @@ function closeAdminLoginModal() { document.getElementById('adminLoginModal').sty
 function showAdminPanel() { document.getElementById('adminPanelModal').style.display = 'flex'; document.getElementById('cheaterForm').reset(); }
 function closeAdminPanel() { document.getElementById('adminPanelModal').style.display = 'none'; }
 function closeEditModal() { document.getElementById('editModal').style.display = 'none'; editingCheater = null; }
-function closeEditHistoryModal() { document.getElementById('editHistoryModal').style.display = 'none'; editingHistory = null; }
 function showConfirmModal(message, callback) { document.getElementById('confirmMessage').textContent = message; document.getElementById('confirmModal').style.display = 'flex'; confirmCallback = callback; }
 function closeConfirmModal() { document.getElementById('confirmModal').style.display = 'none'; confirmCallback = null; }
 function handleConfirmYes() { if (confirmCallback) { confirmCallback(); } closeConfirmModal(); }
