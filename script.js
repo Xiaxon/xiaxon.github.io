@@ -154,12 +154,8 @@ function handleHistoryEditSubmit(e) {
     e.preventDefault();
     if (!editingHistory) return;
     const updatedHistoryData = {
-        playerName: document.getElementById('editHistoryPlayerName').value.trim(),
-        steamId: document.getElementById('editHistorySteamId').value.trim(),
-        steamProfile: document.getElementById('editHistorySteamProfile').value.trim(),
         serverName: document.getElementById('editHistoryServerName').value.trim(),
-        cheatTypes: document.getElementById('editHistoryCheatTypes').value.split(',').map(t => t.trim()).filter(Boolean),
-        fungunReport: document.getElementById('editHistoryFungunReport').value.trim()
+        cheatTypes: document.getElementById('editHistoryCheatTypes').value.split(',').map(t => t.trim()).filter(Boolean)
     };
     sendMessage('HISTORY_ENTRY_UPDATED', {
         cheaterId: editingHistory.cheaterId,
@@ -202,16 +198,9 @@ function editHistoryEntry(cheaterId, historyId) {
     if (!cheater) return;
     const historyEntry = cheater.history.find(h => h._id === historyId);
     if (!historyEntry) return;
-
     editingHistory = { cheaterId, historyId };
-
-    document.getElementById('editHistoryPlayerName').value = historyEntry.playerName || cheater.playerName;
-    document.getElementById('editHistorySteamId').value = historyEntry.steamId || cheater.steamId;
-    document.getElementById('editHistorySteamProfile').value = historyEntry.steamProfile || cheater.steamProfile || '';
     document.getElementById('editHistoryServerName').value = historyEntry.serverName || '';
     document.getElementById('editHistoryCheatTypes').value = (historyEntry.cheatTypes || []).join(', ');
-    document.getElementById('editHistoryFungunReport').value = historyEntry.fungunReport || '';
-    
     document.getElementById('editHistoryModal').style.display = 'flex';
 }
 
@@ -231,20 +220,18 @@ function togglePlayerHistory(rowElement) {
     document.querySelectorAll('.history-icon.rotated').forEach(i => i.classList.remove('rotated'));
 
     const cheater = cheaters.find(c => c._id === cheaterId);
+    // DÜZELTME: Sadece 'history' dizisi boş değilse açılır. Ana kayıt her zaman 1. tespittir.
     if (!cheater || !cheater.history || cheater.history.length === 0) {
-        showToast('Bu oyuncu için geçmiş tespit kaydı bulunmuyor.', 'info');
+        showToast('Bu oyuncu için başka geçmiş tespit kaydı bulunmuyor.', 'info');
         return;
     }
     
     icon?.classList.add('rotated');
+    // DÜZELTME: Artık 'history' dizisindeki her kaydı gösteriyoruz. Backend mantığı düzeltildiği için bu doğrudur.
     const historyRowsHTML = cheater.history.map(item => {
         const itemDate = new Date(item.date).toLocaleString('tr-TR');
-        const playerName = item.playerName || cheater.playerName;
-        const steamId = item.steamId || cheater.steamId;
-        const steamProfile = item.steamProfile || cheater.steamProfile;
         const itemServer = item.serverName || 'Bilinmiyor';
         const itemCheats = (item.cheatTypes || []).map(type => `<span class="stv-cheat-type">${type}</span>`).join('');
-        const fungunReport = item.fungunReport || cheater.fungunReport;
         
         const adminActionsHTML = isLoggedIn ? `
             <td class="p-3">
@@ -253,16 +240,19 @@ function togglePlayerHistory(rowElement) {
                     <button onclick="deleteHistoryEntry('${cheater._id}', '${item._id}')" class="stv-action-btn stv-delete-btn" title="Bu Tespiti Sil"><i class="fas fa-trash"></i></button>
                 </div>
             </td>` : '';
-
+            
         return `
             <tr class="stv-table-row stv-history-row history-for-${cheaterId}" data-history-id="${item._id}">
-                <td class="p-3">${playerName}<span class="stv-history-date-small">${itemDate}</span></td>
-                <td class="p-3"><code>${steamId}</code></td>
-                <td class="p-3">${steamProfile ? `<a href="${steamProfile}" target="_blank" class="text-blue-400 hover:underline">Profil</a>` : 'Yok'}</td>
-                <td class="p-3">${itemServer}</td>
+                <td class="p-3">${cheater.playerName}</td>
+                <td class="p-3"><code>${cheater.steamId}</code></td>
+                <td class="p-3">${cheater.steamProfile ? `<a href="${cheater.steamProfile}" target="_blank" class="text-blue-400 hover:underline">Profil</a>` : 'Yok'}</td>
+                <td class="p-3">
+                    ${itemServer}
+                    <span class="stv-history-date-small">${itemDate}</span>
+                </td>
                 <td class="p-3">-</td>
                 <td class="p-3">${itemCheats}</td>
-                <td class="p-3">${(fungunReport || '').split(',').map(link => link.trim()).filter(Boolean).map(link => `<a href="${link}" target="_blank" class="text-red-400 hover:underline block">Rapor</a>`).join('') || 'Yok'}</td>
+                <td class="p-3">${(cheater.fungunReport || '').split(',').map(link => `<a href="${link}" target="_blank" class="text-red-400 hover:underline block">Rapor</a>`).join('') || 'Yok'}</td>
                 ${adminActionsHTML}
             </tr>`;
     }).join('');
