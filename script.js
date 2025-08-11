@@ -5,6 +5,7 @@ let sortColumn = 'createdAt';
 let sortDirection = 'desc';
 let socket = null;
 let editingCheater = null;
+let editingHistory = null;
 let confirmCallback = null;
 
 const WS_URL = 'wss://stv-backend.onrender.com';
@@ -38,6 +39,9 @@ function setupEventListeners() {
     document.querySelectorAll('.stv-table-header[data-sort]').forEach(th => {
         th.addEventListener('click', () => sortTable(th.dataset.sort));
     });
+    // Yeni olay dinleyicileri
+    document.getElementById('editHistoryForm').addEventListener('submit', handleHistoryEditSubmit);
+    document.getElementById('editHistoryCancelBtn').addEventListener('click', closeEditHistoryModal);
 }
 
 // --- WebSocket Fonksiyonları ---
@@ -72,15 +76,20 @@ function handleWebSocketMessage(message) {
             toastMessage = `Hileci silindi.`;
             break;
         }
+        case 'HISTORY_ENTRY_UPDATED':
         case 'HISTORY_ENTRY_DELETED': {
             const cheaterIndex = cheaters.findIndex(c => c._id === data._id);
             if (cheaterIndex !== -1) {
                 cheaters[cheaterIndex] = data;
-                const existingHistoryRow = document.getElementById(`history-${data._id}`);
+                const existingHistoryRow = document.querySelector(`.history-for-${data._id}`);
                 if (existingHistoryRow) {
-                    existingHistoryRow.remove();
                     const mainRow = document.querySelector(`tr[data-id="${data._id}"]`);
-                    if (mainRow) togglePlayerHistory(mainRow);
+                    if (mainRow) {
+                        const icon = mainRow.querySelector('.history-icon');
+                        icon?.classList.remove('rotated');
+                        document.querySelectorAll(`.history-for-${data._id}`).forEach(row => row.remove());
+                        togglePlayerHistory(mainRow);
+                    }
                 }
             }
             toastMessage = `Tespit geçmişi güncellendi.`;
@@ -142,6 +151,21 @@ function handleEditSubmit(e) {
     if (sendMessage('CHEATER_UPDATED', updatedData)) closeEditModal();
 }
 
+function handleHistoryEditSubmit(e) {
+    e.preventDefault();
+    if (!editingHistory) return;
+    const updatedHistoryData = {
+        serverName: document.getElementById('editHistoryServerName').value.trim(),
+        cheatTypes: document.getElementById('editHistoryCheatTypes').value.split(',').map(t => t.trim()).filter(Boolean)
+    };
+    sendMessage('HISTORY_ENTRY_UPDATED', {
+        cheaterId: editingHistory.cheaterId,
+        historyId: editingHistory.historyId,
+        updatedHistoryData
+    });
+    closeEditHistoryModal();
+}
+
 // --- CRUD Buton Fonksiyonları ---
 function showEditModal(cheaterId) {
     editingCheater = cheaters.find(c => c._id === cheaterId);
@@ -159,7 +183,7 @@ function showEditModal(cheaterId) {
 function deleteCheater(cheaterId) {
     const cheater = cheaters.find(c => c._id === cheaterId);
     if (!cheater) return;
-    showConfirmModal(`${cheater.playerName} adlı hileci silinecek. Emin misiniz?`, () => {
+    showConfirmModal(`'${cheater.playerName}' adlı hileci silinecek. Emin misiniz?`, () => {
         sendMessage('CHEATER_DELETED', { _id: cheaterId });
     });
 }
@@ -171,71 +195,62 @@ function deleteHistoryEntry(cheaterId, historyId) {
 }
 
 function editHistoryEntry(cheaterId, historyId) {
-    showToast('Geçmiş düzenleme özelliği için backend güncellemesi gerekir.', 'info');
+    const cheater = cheaters.find(c => c._id === cheaterId);
+    if (!cheater) return;
+    const historyEntry = cheater.history.find(h => h._id === historyId);
+    if (!historyEntry) return;
+    editingHistory = { cheaterId, historyId };
+    document.getElementById('editHistoryServerName').value = historyEntry.serverName || '';
+    document.getElementById('editHistoryCheatTypes').value = (historyEntry.cheatTypes || []).join(', ');
+    document.getElementById('editHistoryModal').style.display = 'flex';
 }
 
 function togglePlayerHistory(rowElement) {
     const cheaterId = rowElement.dataset.id;
-    const existingHistoryRow = document.getElementById(`history-${cheaterId}`);
     const icon = rowElement.querySelector('.history-icon');
     const isLoggedIn = !!authToken;
-
-    document.querySelectorAll('.stv-history-row').forEach(row => { if (row.id !== `history-${cheaterId}`) row.remove(); });
-    document.querySelectorAll('.history-icon.rotated').forEach(i => { if (i !== icon) i.classList.remove('rotated'); });
-
-    if (existingHistoryRow) {
-        existingHistoryRow.remove();
+    
+    const currentlyOpen = document.querySelectorAll(`.history-for-${cheaterId}`);
+    if (currentlyOpen.length > 0) {
+        currentlyOpen.forEach(row => row.remove());
         icon?.classList.remove('rotated');
-    } else {
-        const cheater = cheaters.find(c => c._id === cheaterId);
-        if (!cheater || !cheater.history || cheater.history.length === 0) {
-            showToast('Bu oyuncu için geçmiş tespit kaydı bulunmuyor.', 'info');
-            return;
-        }
-        
-        icon?.classList.add('rotated');
-        const historyRow = document.createElement('tr');
-        historyRow.id = `history-${cheaterId}`;
-        historyRow.className = 'stv-history-row';
-        const colSpan = isLoggedIn ? 8 : 7;
-        
-        const historyTable = cheater.history.map(item => `
-            <tr class="stv-table-row stv-history-item-row">
-                <td class="p-3">${new Date(item.date).toLocaleString('tr-TR')}</td>
-                <td class="p-3">${item.serverName}</td>
-                <td class="p-3">${(item.cheatTypes || []).map(type => `<span class="stv-cheat-type">${type}</span>`).join('')}</td>
-                ${isLoggedIn ? `
-                    <td class="p-3">
-                        <div class="stv-action-buttons">
-                            <button onclick="editHistoryEntry('${cheater._id}', '${item._id}')" class="stv-action-btn stv-edit-btn" title="Geçmişi Düzenle"><i class="fas fa-edit"></i></button>
-                            <button onclick="deleteHistoryEntry('${cheater._id}', '${item._id}')" class="stv-action-btn stv-delete-btn" title="Geçmişi Sil"><i class="fas fa-trash"></i></button>
-                        </div>
-                    </td>
-                ` : ''}
-            </tr>
-        `).join('');
-
-        historyRow.innerHTML = `
-            <td colspan="${colSpan}">
-                <div class="stv-history-container">
-                    <h4 class="stv-history-title"><i class="fas fa-history mr-2"></i>${cheater.playerName} - Tespit Geçmişi</h4>
-                    <table class="stv-inner-table">
-                        <thead>
-                            <tr>
-                                <th class="stv-table-header"><i class="fas fa-calendar-alt mr-2"></i>Tarih</th>
-                                <th class="stv-table-header"><i class="fas fa-server mr-2"></i>Sunucu</th>
-                                <th class="stv-table-header"><i class="fas fa-bug mr-2"></i>Hileler</th>
-                                ${isLoggedIn ? `<th class="stv-table-header"><i class="fas fa-cogs mr-2"></i>İşlemler</th>` : ''}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${historyTable}
-                        </tbody>
-                    </table>
-                </div>
-            </td>`;
-        rowElement.parentNode.insertBefore(historyRow, rowElement.nextSibling);
+        return;
     }
+
+    document.querySelectorAll('.stv-history-row').forEach(row => row.remove());
+    document.querySelectorAll('.history-icon.rotated').forEach(i => i.classList.remove('rotated'));
+
+    const cheater = cheaters.find(c => c._id === cheaterId);
+    if (!cheater || !cheater.history || cheater.history.length === 0) {
+        showToast('Bu oyuncu için geçmiş tespit kaydı bulunmuyor.', 'info');
+        return;
+    }
+    
+    icon?.classList.add('rotated');
+    const historyRowsHTML = cheater.history.map(item => {
+        const itemDate = new Date(item.date).toLocaleString('tr-TR');
+        const itemServer = item.serverName || 'Bilinmiyor';
+        const itemCheats = (item.cheatTypes || []).map(type => `<span class="stv-cheat-type">${type}</span>`).join('');
+        const adminActionsHTML = isLoggedIn ? `
+            <td class="p-3">
+                <div class="stv-action-buttons">
+                    <button onclick="editHistoryEntry('${cheater._id}', '${item._id}')" class="stv-action-btn stv-edit-btn" title="Geçmişi Düzenle"><i class="fas fa-edit"></i></button>
+                    <button onclick="deleteHistoryEntry('${cheater._id}', '${item._id}')" class="stv-action-btn stv-delete-btn" title="Geçmişi Sil"><i class="fas fa-trash"></i></button>
+                </div>
+            </td>` : '';
+        return `
+            <tr class="stv-table-row stv-history-row history-for-${cheaterId}" data-history-id="${item._id}">
+                <td class="p-3"><i>${itemDate}</i></td>
+                <td class="p-3"><code>${cheater.steamId}</code></td>
+                <td class="p-3">${cheater.steamProfile ? `<a href="${cheater.steamProfile}" target="_blank" class="text-blue-400 hover:underline">Profil</a>` : 'Yok'}</td>
+                <td class="p-3">${itemServer}</td>
+                <td class="p-3">-</td>
+                <td class="p-3">${itemCheats}</td>
+                <td class="p-3">${(cheater.fungunReport || '').split(',').map(link => link.trim()).filter(Boolean).map(link => `<a href="${link}" target="_blank" class="text-red-400 hover:underline block">Rapor</a>`).join('') || 'Yok'}</td>
+                ${adminActionsHTML}
+            </tr>`;
+    }).join('');
+    rowElement.insertAdjacentHTML('afterend', historyRowsHTML);
 }
 
 // --- Modal Kontrol Fonksiyonları ---
@@ -247,6 +262,7 @@ function closeAdminLoginModal() { document.getElementById('adminLoginModal').sty
 function showAdminPanel() { document.getElementById('adminPanelModal').style.display = 'flex'; document.getElementById('cheaterForm').reset(); }
 function closeAdminPanel() { document.getElementById('adminPanelModal').style.display = 'none'; }
 function closeEditModal() { document.getElementById('editModal').style.display = 'none'; editingCheater = null; }
+function closeEditHistoryModal() { document.getElementById('editHistoryModal').style.display = 'none'; editingHistory = null; }
 function showConfirmModal(message, callback) { document.getElementById('confirmMessage').textContent = message; document.getElementById('confirmModal').style.display = 'flex'; confirmCallback = callback; }
 function closeConfirmModal() { document.getElementById('confirmModal').style.display = 'none'; confirmCallback = null; }
 function handleConfirmYes() { if (confirmCallback) { confirmCallback(); } closeConfirmModal(); }
