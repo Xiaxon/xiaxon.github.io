@@ -94,9 +94,6 @@ textarea.stv-input-form { min-height: 80px; resize: vertical; }
 .stv-history-row {
     background-color: rgba(40, 40, 40, 0.5) !important;
 }
-.stv-history-row:hover {
-    background-color: rgba(153, 0, 0, 0.2) !important;
-}
 .stv-history-row td:first-child {
     padding-left: 30px !important;
     position: relative;
@@ -121,4 +118,7 @@ textarea.stv-input-form { min-height: 80px; resize: vertical; }
 .stv-inner-table th, .stv-inner-table td {
     border: 1px solid #444;
     background-color: #252525;
+}
+.stv-history-item-row:hover {
+    background-color: rgba(153, 0, 0, 0.2) !important;
 }
