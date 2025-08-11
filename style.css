@@ -94,6 +94,9 @@ textarea.stv-input-form { min-height: 80px; resize: vertical; }
 .stv-history-row {
     background-color: rgba(40, 40, 40, 0.5) !important;
 }
+.stv-history-row:hover {
+    background-color: rgba(153, 0, 0, 0.2) !important;
+}
 .stv-history-row td:first-child {
     padding-left: 30px !important;
     position: relative;
@@ -119,46 +122,12 @@ textarea.stv-input-form { min-height: 80px; resize: vertical; }
     border: 1px solid #444;
     background-color: #252525;
 }
-.stv-history-item-row:hover {
-    background-color: rgba(153, 0, 0, 0.2) !important;
-}
-/* --- YENİ EKLENEN STİLLER: Gelişmiş Tespit Geçmişi Satırları --- */
-.stv-history-row {
-    background-color: rgba(45, 45, 45, 0.7) !important; /* Ana satırdan biraz daha koyu */
-    font-size: 0.9em; /* Yazıları biraz daha küçük yap */
-}
-.stv-history-row:hover {
-    background-color: rgba(153, 0, 0, 0.25) !important; /* Üzerine gelince vurgu */
-}
-.stv-history-row td {
-    border-color: #444; /* Çizgileri daha belirsiz yap */
-}
-.stv-history-row td:first-child {
-    padding-left: 35px !important; /* Soldan daha fazla boşluk bırak */
-    position: relative;
-}
-/* Satırın başına daha belirgin bir ikon ekler */
-.stv-history-row td:first-child::before {
-    content: '\f178'; /* FontAwesome'dan sağa ok ikonu */
-    font-family: 'Font Awesome 6 Free';
-    font-weight: 900;
-    position: absolute;
-    left: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #ff4444;
-}
-.stv-history-date-small {
-    display: block;
-    font-size: 0.8em;
-    color: #9ca3af;
-    margin-top: 4px;
-}
-/* --- YENİ EKLENEN STİL: Modal Alt Başlığı --- */
+
+/* --- DÜZENLENEN BÖLÜM --- */
 .stv-modal-subtitle {
-    font-size: 1.25rem; /* Yazı fontunu büyütür (1rem standarttır) */
+    font-size: 1.25rem;
     font-weight: 500;
-    color: #e57373;     /* Göze batmayan, soluk bir kırmızı tonu */
-    margin-top: -10px;  /* Başlıkla arasını biraz kapatır */
-    margin-bottom: 25px;/* Altındaki paragrafla arasını açar */
+    color: #e57373;
+    margin-top: 5px; /* Başlıkla arasını açmak için negatif değer pozitife çevrildi */
+    margin-bottom: 30px;
 }
