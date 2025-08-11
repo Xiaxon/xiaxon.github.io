@@ -81,7 +81,6 @@ function handleWebSocketMessage(message) {
             const cheaterIndex = cheaters.findIndex(c => c._id === data._id);
             if (cheaterIndex !== -1) {
                 cheaters[cheaterIndex] = data;
-                // Açık olan geçmiş penceresini de yeniden çizmek için
                 const existingHistoryRow = document.querySelector(`.history-for-${data._id}`);
                 if (existingHistoryRow) {
                     const mainRow = document.querySelector(`tr[data-id="${data._id}"]`);
