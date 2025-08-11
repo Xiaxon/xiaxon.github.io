@@ -3,93 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>STV HİLEYLE MÜCADELE - CS 1.6 Hileci Takip Sistemi</title>
+    <title>STV HİLEYLE MÜCADELE</title>
     <meta name="description" content="Burası hileci orospu evlatlarını sergilediğimiz bir liste. İstediğinizi arama kısmından Steam ID veya nick ile arayıp bulabilirsiniz.">
     <link rel="icon" href="favicon.png" type="image/png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="welcomeModal" class="stv-modal" style="display: none;">
-        <div class="stv-modal-content">
-            <h2 class="text-4xl font-bold text-red-400 mb-5"><i class="fas fa-shield-alt mr-3"></i>STV HİLEYLE MÜCADELE</h2>
-            <p class="stv-modal-subtitle">Siteye giriş yaptığınızda ilk 30-50 saniye liste boş olabilir, bekleyin azıcık.</p>
-            <p class="text-gray-300 mb-4 text-lg">Herkesin bildiği gibi, son zamanlarda artan hileci orospu evlatlarıyla mücadele etmek için bu siteyi kurduk.</p>
-            <p class="text-gray-300 mb-4 text-lg">Oyun zevkimizi yerle bir eden bu yavşakları tek tek buraya yazmaya çalıştım. Liste sürekli güncellenecek, siz de buradan takip edebileceksiniz.</p>
-            <p class="text-gray-300 mb-4 text-lg">Destek olmak istiyorsanız, bu tipleri ortamlarınıza ya da klanlarınıza almayın.</p>
-            <p class="text-gray-300 mb-4 text-lg">Eklemek istediğiniz isimler olursa, Discord'a gelin ve yazın.</p>
-            <p class="text-gray-300 mb-4 text-lg font-bold">Hepinizi seviyorum.</p>
-            <p class="text-red-400 font-bold text-lg mb-6">STV her zaman izliyor.</p>
-            <button id="closeModalBtn" class="stv-btn-primary px-8 py-4 text-lg"><i class="fas fa-play mr-2"></i>Sisteme Gir</button>
-        </div>
-    </div>
+    <div id="welcomeModal" class="stv-modal" style="display: none;"> </div>
+    <div id="adminLoginModal" class="stv-modal" style="display: none;"> </div>
+    <div id="adminPanelModal" class="stv-modal" style="display: none;"> </div>
+    <div id="editModal" class="stv-modal" style="display: none;"> </div>
+    <div id="confirmModal" class="stv-modal" style="display: none;"> </div>
 
-    <div id="adminLoginModal" class="stv-modal" style="display: none;">
-        <div class="stv-modal-content max-w-md">
-            <h2 class="text-2xl font-bold text-white mb-2">Yönetici Erişimi</h2>
-            <p class="text-gray-400 text-sm mb-6">Devam etmek için şifrenizi girin</p>
-            <input type="password" id="adminPassword" class="stv-input-admin pl-12 mb-6" placeholder="Admin şifresi" />
-            <div class="flex gap-3">
-                <button id="adminLoginBtn" class="stv-btn-primary flex-1 py-4">Giriş Yap</button>
-                <button id="adminCancelBtn" class="stv-btn-secondary flex-1 py-4">İptal</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="adminPanelModal" class="stv-modal" style="display: none;">
-        <div class="stv-modal-content max-w-4xl">
-            <h2 class="text-4xl font-bold text-red-400 mb-6"><i class="fas fa-user-plus mr-3"></i>Yeni Hileci Ekle</h2>
-            <form id="cheaterForm">
-                <div class="stv-admin-form-grid">
-                    <div class="stv-form-group"><label class="stv-form-label">Oyuncu Adı *</label><input type="text" id="playerName" class="stv-input-form" required /></div>
-                    <div class="stv-form-group"><label class="stv-form-label">Steam ID *</label><input type="text" id="steamId" class="stv-input-form" required /></div>
-                    <div class="stv-form-group"><label class="stv-form-label">Steam Profil</label><input type="url" id="steamProfile" class="stv-input-form" /></div>
-                    <div class="stv-form-group"><label class="stv-form-label">Son Sunucu *</label><input type="text" id="serverName" class="stv-input-form" required /></div>
-                    <div class="stv-form-group"><label class="stv-form-label">Hile Türleri</label><input type="text" id="cheatTypes" class="stv-input-form" placeholder="Virgülle ayırın" /></div>
-                    <div class="stv-form-group" style="grid-column: 1 / -1;"><label class="stv-form-label">Fungun Rapor Linki</label><input type="text" id="fungunReport" class="stv-input-form" placeholder="Virgülle ayırarak girilebilir" /></div>
-                </div>
-                <div class="flex gap-4 justify-center flex-wrap mt-6">
-                    <button type="submit" class="stv-btn-primary px-8 py-4"><i class="fas fa-plus mr-2"></i>Hileci Ekle</button>
-                    <button type="button" id="adminCloseBtn" class="stv-btn-secondary px-8 py-4"><i class="fas fa-times mr-2"></i>Kapat</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div id="editModal" class="stv-modal" style="display: none;">
-        <div class="stv-modal-content max-w-4xl">
-            <h2 class="text-4xl font-bold text-yellow-400 mb-6"><i class="fas fa-edit mr-3"></i>Hileci Düzenle</h2>
-            <form id="editForm">
-                <div class="stv-admin-form-grid">
-                    <div class="stv-form-group"><label class="stv-form-label">Oyuncu Adı *</label><input type="text" id="editPlayerName" class="stv-input-form" required /></div>
-                    <div class="stv-form-group"><label class="stv-form-label">Steam ID *</label><input type="text" id="editSteamId" class="stv-input-form" required /></div>
-                    <div class="stv-form-group"><label class="stv-form-label">Steam Profil</label><input type="url" id="editSteamProfile" class="stv-input-form" /></div>
-                    <div class="stv-form-group"><label class="stv-form-label">Son Sunucu *</label><input type="text" id="editServerName" class="stv-input-form" required /></div>
-                    <div class="stv-form-group"><label class="stv-form-label">Tespit Sayısı</label><input type="number" id="editDetectionCount" class="stv-input-form" min="1" /></div>
-                    <div class="stv-form-group"><label class="stv-form-label">Hile Türleri</label><input type="text" id="editCheatTypes" class="stv-input-form" placeholder="Virgülle ayırın" /></div>
-                    <div class="stv-form-group" style="grid-column: 1 / -1;"><label class="stv-form-label">Fungun Rapor Linki</label><input type="text" id="editFungunReport" class="stv-input-form" placeholder="Virgülle ayırarak girilebilir" /></div>
-                </div>
-                <div class="flex gap-4 justify-center flex-wrap mt-6">
-                    <button type="submit" class="stv-btn-primary px-8 py-4"><i class="fas fa-save mr-2"></i>Kaydet</button>
-                    <button type="button" id="editCancelBtn" class="stv-btn-secondary px-8 py-4"><i class="fas fa-times mr-2"></i>İptal</button>
-                </div>
-            </form>
-        </div>
-    </div>
-    
     <div id="editHistoryModal" class="stv-modal" style="display: none;">
-        <div class="stv-modal-content max-w-lg">
+        <div class="stv-modal-content max-w-4xl">
             <h2 class="text-3xl font-bold text-yellow-400 mb-6"><i class="fas fa-history mr-3"></i>Tespit Geçmişini Düzenle</h2>
             <form id="editHistoryForm">
-                <div class="stv-admin-form-grid" style="grid-template-columns: 1fr;">
-                    <div class="stv-form-group">
-                        <label class="stv-form-label">Sunucu Adı *</label>
-                        <input type="text" id="editHistoryServerName" class="stv-input-form" required />
-                    </div>
-                    <div class="stv-form-group">
-                        <label class="stv-form-label">Hile Türleri</label>
-                        <input type="text" id="editHistoryCheatTypes" class="stv-input-form" placeholder="Virgülle ayırın" />
-                    </div>
+                <div class="stv-admin-form-grid">
+                    <div class="stv-form-group"><label class="stv-form-label">Oyuncu Adı *</label><input type="text" id="editHistoryPlayerName" class="stv-input-form" required /></div>
+                    <div class="stv-form-group"><label class="stv-form-label">Steam ID *</label><input type="text" id="editHistorySteamId" class="stv-input-form" required /></div>
+                    <div class="stv-form-group"><label class="stv-form-label">Steam Profil</label><input type="url" id="editHistorySteamProfile" class="stv-input-form" /></div>
+                    <div class="stv-form-group"><label class="stv-form-label">Sunucu Adı *</label><input type="text" id="editHistoryServerName" class="stv-input-form" required /></div>
+                    <div class="stv-form-group"><label class="stv-form-label">Hile Türleri</label><input type="text" id="editHistoryCheatTypes" class="stv-input-form" placeholder="Virgülle ayırın" /></div>
+                    <div class="stv-form-group" style="grid-column: 1 / -1;"><label class="stv-form-label">Fungun Rapor Linki</label><input type="text" id="editHistoryFungunReport" class="stv-input-form" /></div>
                 </div>
                 <div class="flex gap-4 justify-center flex-wrap mt-6">
                     <button type="submit" class="stv-btn-primary px-8 py-4"><i class="fas fa-save mr-2"></i>Geçmişi Kaydet</button>
@@ -99,61 +36,5 @@
         </div>
     </div>
 
-    <div id="confirmModal" class="stv-modal" style="display: none;">
-        <div class="stv-modal-content max-w-md">
-            <h2 class="text-2xl font-bold text-red-400 mb-4"><i class="fas fa-exclamation-triangle mr-2"></i>Onay Gerekiyor</h2>
-            <p id="confirmMessage" class="text-gray-300 mb-6"></p>
-            <div class="flex gap-4 justify-center">
-                <button id="confirmYes" class="stv-btn-primary px-8 py-3">Evet</button>
-                <button id="confirmNo" class="stv-btn-secondary px-8 py-3">Hayır</button>
-            </div>
-        </div>
-    </div>
-
-    <a href="https://discord.gg/Gasyz7nTnt" target="_blank" rel="noopener noreferrer" class="stv-social-btn stv-discord-btn"><i class="fab fa-discord text-lg mr-2"></i>Discord</a>
-    <div class="stv-admin-info">YAPIMCI: XİAXON - LJUPKA - SELAMKİMSENN</div>
-    <a href="https://www.youtube.com/@xiaxonn" target="_blank" rel="noopener noreferrer" class="stv-social-btn stv-youtube-btn"><i class="fab fa-youtube text-lg mr-2"></i>Xiaxon</a>
-    <div class="admin-actions-container">
-        <button id="adminBtn" class="stv-social-btn stv-admin-btn"><i class="fas fa-user-shield text-lg mr-2"></i>Admin</button>
-        <button id="quickAddBtn" class="stv-social-btn stv-quick-add-btn" style="display: none;" title="Hızlı Ekle"><i class="fas fa-plus"></i></button>
-    </div>
-
-    <div class="min-h-screen stv-gradient-bg">
-        <div class="container mx-auto px-5 py-5 max-w-7xl">
-            <header class="main-header">
-                <h1 class="text-4xl font-bold text-white mb-3"><i class="fas fa-crosshairs mr-3"></i>STV HİLEYLE MÜCADELE</h1>
-                <p class="text-gray-300 text-lg">Burası hileci orospu evlatlarını sergilediğimiz bir liste. İstediğinizi arama kısmından Steam ID veya nick ile arayıp bulabilirsiniz.</p>
-            </header>
-
-            <div class="flex justify-center items-center mb-8"><div class="relative w-full max-w-md"><input type="text" id="searchInput" class="stv-input pl-12" placeholder="Oyuncu adı veya Steam ID ile ara..." /><i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500"></i></div></div>
-            <div id="connectionStatus" class="text-center mb-4" style="display: none;"></div>
-
-            <div class="stv-table-container">
-                <table class="stv-table">
-                    <thead>
-                        <tr>
-                            <th class="stv-table-header" data-sort="playerName"><i class="fas fa-user mr-2"></i>Oyuncu Adı</th>
-                            <th class="stv-table-header" data-sort="steamId"><i class="fab fa-steam mr-2"></i>Steam ID</th>
-                            <th class="stv-table-header"><i class="fas fa-link mr-2"></i>Steam Profil</th>
-                            <th class="stv-table-header" data-sort="serverName"><i class="fas fa-server mr-2"></i>Son Sunucu</th>
-                            <th class="stv-table-header" data-sort="detectionCount"><i class="fas fa-crosshairs mr-2"></i>Tespit Sayısı</th>
-                            <th class="stv-table-header"><i class="fas fa-bug mr-2"></i>Hile Türleri</th>
-                            <th class="stv-table-header"><i class="fas fa-file-alt mr-2"></i>Fungun Rapor</th>
-                            <th id="actionsHeader" class="stv-table-header" style="display: none;"><i class="fas fa-cogs mr-2"></i>İşlemler</th>
-                        </tr>
-                    </thead>
-                    <tbody id="cheaterTableBody">
-                        <tr><td colspan="8" class="text-center py-10"><i class="fas fa-spinner fa-spin mr-2"></i>Yükleniyor...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <footer class="main-footer">
-                <p>STV HİLEYLE MÜCADELE - <span id="cheaterCountDisplay">0</span> hileci listeleniyor.</p>
-                <p>Son Güncelleme: <span id="lastUpdateTime">-</span></p>
-            </footer>
-        </div>
-    </div>
-    <script src="script.js"></script>
-</body>
+    </body>
 </html>
