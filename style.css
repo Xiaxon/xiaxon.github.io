@@ -56,14 +56,14 @@ textarea.stv-input-form { min-height: 80px; resize: vertical; }
 .stv-quick-add-btn { position: static; background: #059669; width: 44px; height: 44px; padding: 0; justify-content: center; border-radius: 50%; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.4); }
 .stv-quick-add-btn:hover { transform: scale(1.1); }
 
-/* Ana Başlık ve Alt Bilgi (Düzeltildi) */
+/* Ana Başlık ve Alt Bilgi */
 .main-header {
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
     margin-bottom: 2rem;
-    padding-top: 60px; /* Butonların altında kalmaması için */
+    padding-top: 60px;
     padding-bottom: 1.25rem;
     border-bottom: 2px solid #4b0000;
 }
@@ -91,12 +91,28 @@ textarea.stv-input-form { min-height: 80px; resize: vertical; }
 .stv-cheat-type { background: #990000; color: white; padding: 4px 8px; border-radius: 8px; font-size: 11px; margin: 2px; display: inline-block; }
 
 /* Geçmişi Görüntüleme Stilleri */
-.stv-history-row td { padding: 0 !important; background: rgba(10, 10, 10, 0.5); }
+.stv-history-row {
+    background-color: rgba(40, 40, 40, 0.5) !important;
+}
+.stv-history-row:hover {
+    background-color: rgba(153, 0, 0, 0.2) !important;
+}
+.stv-history-row td:first-child {
+    padding-left: 30px !important;
+    position: relative;
+}
+.stv-history-row td:first-child::before {
+    content: '\f105';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #ff4444;
+}
 .stv-history-container { padding: 20px; }
 .stv-history-title { color: #fbbf24; font-size: 16px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #374151; }
-.stv-history-list { display: flex; flex-direction: column; gap: 12px; }
-.stv-history-item { background: rgba(55, 65, 81, 0.8); padding: 12px 16px; border-radius: 8px; border-left: 3px solid #9900
-/* Tespit Geçmişi İç Tablo Stilleri */
 .stv-inner-table {
     width: 100%;
     margin-top: 10px;
@@ -105,7 +121,4 @@ textarea.stv-input-form { min-height: 80px; resize: vertical; }
 .stv-inner-table th, .stv-inner-table td {
     border: 1px solid #444;
     background-color: #252525;
-}
-.stv-history-item-row:hover {
-    background-color: rgba(153, 0, 0, 0.2) !important;
 }
