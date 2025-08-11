@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>STV HİLEYLE MÜCADELE</title>
+    <title>STV HİLEYLE MÜCADELE - CS 1.6 Hileci Takip Sistemi</title>
     <meta name="description" content="Burası hileci orospu evlatlarını sergilediğimiz bir liste. İstediğinizi arama kısmından Steam ID veya nick ile arayıp bulabilirsiniz.">
     <link rel="icon" href="favicon.png" type="image/png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -76,28 +76,6 @@
         </div>
     </div>
     
-    <div id="editHistoryModal" class="stv-modal" style="display: none;">
-        <div class="stv-modal-content max-w-lg">
-            <h2 class="text-3xl font-bold text-yellow-400 mb-6"><i class="fas fa-history mr-3"></i>Tespit Geçmişini Düzenle</h2>
-            <form id="editHistoryForm">
-                <div class="stv-admin-form-grid" style="grid-template-columns: 1fr;">
-                    <div class="stv-form-group">
-                        <label class="stv-form-label">Sunucu Adı *</label>
-                        <input type="text" id="editHistoryServerName" class="stv-input-form" required />
-                    </div>
-                    <div class="stv-form-group">
-                        <label class="stv-form-label">Hile Türleri</label>
-                        <input type="text" id="editHistoryCheatTypes" class="stv-input-form" placeholder="Virgülle ayırın" />
-                    </div>
-                </div>
-                <div class="flex gap-4 justify-center flex-wrap mt-6">
-                    <button type="submit" class="stv-btn-primary px-8 py-4"><i class="fas fa-save mr-2"></i>Geçmişi Kaydet</button>
-                    <button type="button" id="editHistoryCancelBtn" class="stv-btn-secondary px-8 py-4"><i class="fas fa-times mr-2"></i>İptal</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <div id="confirmModal" class="stv-modal" style="display: none;">
         <div class="stv-modal-content max-w-md">
             <h2 class="text-2xl font-bold text-red-400 mb-4"><i class="fas fa-exclamation-triangle mr-2"></i>Onay Gerekiyor</h2>
@@ -110,7 +88,7 @@
     </div>
 
     <a href="https://discord.gg/Gasyz7nTnt" target="_blank" rel="noopener noreferrer" class="stv-social-btn stv-discord-btn"><i class="fab fa-discord text-lg mr-2"></i>Discord</a>
-    <div class="stv-admin-info">YAPIMCI: XİAXON - LJUPKA - SELAMKİMSEN</div>
+    <div class="stv-admin-info">YAPIMCI: XİAXON - LJUPKA - SELAMKİMSENN</div>
     <a href="https://www.youtube.com/@xiaxonn" target="_blank" rel="noopener noreferrer" class="stv-social-btn stv-youtube-btn"><i class="fab fa-youtube text-lg mr-2"></i>Xiaxon</a>
     <div class="admin-actions-container">
         <button id="adminBtn" class="stv-social-btn stv-admin-btn"><i class="fas fa-user-shield text-lg mr-2"></i>Admin</button>
@@ -156,5 +134,3 @@
     <script src="script.js"></script>
 </body>
 </html>
-
-
