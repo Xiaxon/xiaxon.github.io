@@ -68,22 +68,30 @@ function handleWebSocketMessage(message) {
             const index = cheaters.findIndex(c => c._id === data._id);
             if (index !== -1) cheaters[index] = data;
             toastMessage = `${data.playerName} güncellendi.`;
-            // Eğer geçmişi açıksa, yeniden çiz
-            const existingHistoryRow = document.querySelector(`.history-for-${data._id}`);
-            if (existingHistoryRow) {
-                const mainRow = document.querySelector(`tr[data-id="${data._id}"]`);
-                if (mainRow) {
-                    const icon = mainRow.querySelector('.history-icon');
-                    icon?.classList.remove('rotated');
-                    document.querySelectorAll(`.history-for-${data._id}`).forEach(row => row.remove());
-                    togglePlayerHistory(mainRow);
-                }
-            }
             break;
         }
         case 'CHEATER_DELETED': {
             cheaters = cheaters.filter(c => c._id !== data._id);
             toastMessage = `Hileci silindi.`;
+            break;
+        }
+        case 'HISTORY_ENTRY_UPDATED':
+        case 'HISTORY_ENTRY_DELETED': {
+            const cheaterIndex = cheaters.findIndex(c => c._id === data._id);
+            if (cheaterIndex !== -1) {
+                cheaters[cheaterIndex] = data;
+                const existingHistoryRow = document.querySelector(`.history-for-${data._id}`);
+                if (existingHistoryRow) {
+                    const mainRow = document.querySelector(`tr[data-id="${data._id}"]`);
+                    if (mainRow) {
+                        const icon = mainRow.querySelector('.history-icon');
+                        icon?.classList.remove('rotated');
+                        document.querySelectorAll(`.history-for-${data._id}`).forEach(row => row.remove());
+                        togglePlayerHistory(mainRow);
+                    }
+                }
+            }
+            toastMessage = `Tespit geçmişi güncellendi.`;
             break;
         }
         case 'ERROR_OCCURRED': 
@@ -233,7 +241,7 @@ function togglePlayerHistory(rowElement) {
         const steamProfile = item.steamProfile || cheater.steamProfile;
         const itemServer = item.serverName || 'Bilinmiyor';
         const itemCheats = (item.cheatTypes || []).map(type => `<span class="stv-cheat-type">${type}</span>`).join('');
-        const fungunReport = item.fungunReport || cheater.fungunReport;
+        const fungunReport = item.fungunReport || '';
         
         const adminActionsHTML = isLoggedIn ? `
             <td class="p-3">
@@ -250,7 +258,7 @@ function togglePlayerHistory(rowElement) {
                 <td class="p-3">${itemServer}</td>
                 <td class="p-3">-</td>
                 <td class="p-3">${itemCheats}</td>
-                <td class="p-3">${(fungunReport || '').split(',').map(link => `<a href="${link}" target="_blank" class="text-red-400 hover:underline block">Rapor</a>`).join('') || 'Yok'}</td>
+                <td class="p-3">${(fungunReport).split(',').map(link => link.trim()).filter(Boolean).map(link => `<a href="${link}" target="_blank" class="text-red-400 hover:underline block">Rapor</a>`).join('') || 'Yok'}</td>
                 ${adminActionsHTML}
             </tr>`;
     }).join('');
@@ -310,17 +318,33 @@ function updateAdminUI() {
 }
 
 // --- Arayüz Güncelleme ve Yardımcı Fonksiyonlar ---
+// GÜNCELLENDİ: showToast fonksiyonu
 function showToast(message, type = 'info') {
     const toast = document.createElement('div');
-    toast.style.cssText = `position: fixed; top: 20px; right: 20px; background: ${type === 'error' ? '#b91c1c' : type === 'success' ? '#16a34a' : '#2563eb'}; color: white; padding: 14px 22px; border-radius: 8px; z-index: 10001; font-weight: 500; box-shadow: 0 5px 15px rgba(0,0,0,0.3); transform: translateX(120%); transition: transform 0.4s ease;`;
+    // DEĞİŞİKLİK: Konum 'bottom: 20px; left: 20px;' olarak değiştirildi.
+    // DEĞİŞİKLİK: Animasyon 'transform' yerine 'opacity' ve 'visibility' kullanacak.
+    toast.style.cssText = `position: fixed; bottom: 20px; left: 20px; background: ${type === 'error' ? '#b91c1c' : type === 'success' ? '#16a34a' : '#2563eb'}; color: white; padding: 14px 22px; border-radius: 8px; z-index: 10001; font-weight: 500; box-shadow: 0 5px 15px rgba(0,0,0,0.3); opacity: 0; transition: opacity 0.4s ease, visibility 0.4s ease; visibility: hidden;`;
     toast.textContent = message;
     document.body.appendChild(toast);
-    setTimeout(() => { toast.style.transform = 'translateX(0)'; }, 100);
+    
+    // Fade-in animasyonu
     setTimeout(() => {
-        toast.style.transform = 'translateX(120%)';
-        setTimeout(() => { if (document.body.contains(toast)) document.body.removeChild(toast); }, 400);
+        toast.style.opacity = '1';
+        toast.style.visibility = 'visible';
+    }, 100);
+
+    // Fade-out animasyonu
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => {
+            // Animasyon bittikten sonra elementi DOM'dan kaldır
+            if (document.body.contains(toast)) {
+                document.body.removeChild(toast);
+            }
+        }, 400); // transition süresiyle aynı olmalı
     }, 4000);
 }
+
 function showConnectionStatus(isConnecting, message = '') {
     const statusDiv = document.getElementById('connectionStatus');
     statusDiv.style.display = isConnecting ? 'block' : 'none';
