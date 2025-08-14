@@ -83,38 +83,30 @@ textarea.stv-input-form { min-height: 80px; resize: vertical; }
     font-size: 0.875rem;
 }
 
-/* --- TABLO STİLLERİ GÜNCELLENDİ --- */
-.stv-table-container { 
-    background: rgba(25, 25, 25, 0.95); 
-    border-radius: 15px; 
-    overflow-x: auto; 
-    border: 1px solid #660000; 
-}
+/* Tablo Stilleri */
+.stv-table-container { background: rgba(25, 25, 25, 0.95); border-radius: 15px; overflow-x: auto; border: 1px solid #660000; }
 .stv-table { 
     width: 100%; 
     border-collapse: collapse; 
     color: white;
-    table-layout: fixed; /* Sütun genişliklerini sabitler */
+    table-layout: fixed;
 }
 .stv-table-header { 
     background: linear-gradient(135deg, #660000, #990000); 
     color: white; 
-    padding: 12px 10px; /* Padding azaltıldı */
+    padding: 12px 10px;
     font-weight: 600; 
     text-align: left; 
     cursor: pointer; 
     white-space: nowrap; 
 }
-.stv-table-row { 
-    border-bottom: 1px solid #333333; 
-    transition: background-color 0.2s ease; 
-}
+.stv-table-row { border-bottom: 1px solid #333333; transition: background-color 0.2s ease; }
 .stv-table-row:hover { background: rgba(153, 0, 0, 0.1); }
 .stv-table td { 
-    padding: 10px 10px; /* Padding azaltıldı */
+    padding: 10px 10px;
     vertical-align: middle;
-    font-size: 0.9em; /* Yazı boyutu küçültüldü */
-    word-wrap: break-word; /* Uzun kelimeleri kır */
+    font-size: 0.9em;
+    word-wrap: break-word;
 }
 
 /* Sütun genişlikleri */
@@ -127,7 +119,6 @@ textarea.stv-input-form { min-height: 80px; resize: vertical; }
 .stv-table th:nth-child(7), .stv-table td:nth-child(7) { width: 12%; } /* Fungun Rapor */
 .stv-table th:nth-child(8), .stv-table td:nth-child(8) { width: 8%; } /* İşlemler */
 
-
 .stv-player-name.clickable { color: #60a5fa; cursor: pointer; transition: color 0.2s ease; display: inline-flex; align-items: center; gap: 8px; }
 .stv-player-name.clickable:hover { color: #93c5fd; }
 .history-icon { transition: transform 0.3s ease; font-size: 12px; }
@@ -138,6 +129,7 @@ textarea.stv-input-form { min-height: 80px; resize: vertical; }
 /* Geçmişi Görüntüleme Stilleri */
 .stv-history-row {
     background-color: rgba(40, 40, 40, 0.5) !important;
+    font-size: 0.9em;
 }
 .stv-history-row:hover {
     background-color: rgba(153, 0, 0, 0.25) !important;
