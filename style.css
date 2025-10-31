@@ -54,23 +54,24 @@ textarea.stv-input-form { min-height: 80px; resize: vertical; }
 }
 
 /* Sabit Butonlar ve Pozisyonlama */
-.stv-social-btn { position: fixed; top: 20px; color: white; padding: 10px 16px; border-radius: 25px; text-decoration: none; font-weight: 600; z-index: 999; display: flex; align-items: center; gap: 8px; transition: all 0.3s ease; border: none; cursor: pointer; }
+.stv-social-btn { position: absolute; top: 20px; color: white; padding: 10px 16px; border-radius: 25px; text-decoration: none; font-weight: 600; z-index: 999; display: flex; align-items: center; gap: 8px; transition: all 0.3s ease; border: none; cursor: pointer; }
 .stv-discord-btn { left: 20px; background: #5865f2; }
-.stv-youtube-btn { right: 220px; background: #ff0000; }
-.stv-admin-info { position: fixed; top: 75px; left: 20px; color: #ffd700; font-weight: 700; z-index: 999; }
-.admin-actions-container { position: fixed; top: 20px; right: 20px; display: flex; align-items: center; gap: 10px; z-index: 999; }
+.stv-youtube-btn { position: absolute; top: 20px; right: 200px; background: #ff0000; }
+.stv-admin-info { position: absolute; top: 75px; left: 20px; color: #ffd700; font-weight: 700; z-index: 999; }
+.admin-actions-container { position: absolute; top: 20px; right: 20px; display: flex; align-items: center; gap: 10px; z-index: 999; }
 .stv-admin-btn { position: static; background: #4f4f4f; }
 .stv-quick-add-btn { position: static; background: #059669; width: 44px; height: 44px; padding: 0; justify-content: center; border-radius: 50%; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.4); }
 .stv-quick-add-btn:hover { transform: scale(1.1); }
 
 /* Ana Başlık ve Alt Bilgi */
+.stv-gradient-bg { position: relative; }
 .main-header {
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
     margin-bottom: 2rem;
-    padding-top: 60px;
+    padding-top: 120px;
     padding-bottom: 1.25rem;
     border-bottom: 2px solid #4b0000;
 }
@@ -96,7 +97,7 @@ textarea.stv-input-form { min-height: 80px; resize: vertical; }
     color: white; 
     padding: 12px 10px;
     font-weight: 600; 
-    text-align: left; 
+    text-align: center; 
     cursor: pointer; 
     white-space: nowrap; 
 }
@@ -110,14 +111,14 @@ textarea.stv-input-form { min-height: 80px; resize: vertical; }
 }
 
 /* Sütun genişlikleri */
-.stv-table th:nth-child(1), .stv-table td:nth-child(1) { width: 15%; } /* Oyuncu Adı */
-.stv-table th:nth-child(2), .stv-table td:nth-child(2) { width: 15%; } /* Steam ID */
-.stv-table th:nth-child(3), .stv-table td:nth-child(3) { width: 10%; } /* Steam Profil */
-.stv-table th:nth-child(4), .stv-table td:nth-child(4) { width: 20%; } /* Son Sunucu */
-.stv-table th:nth-child(5), .stv-table td:nth-child(5) { width: 8%; text-align: center;} /* Tespit Sayısı */
-.stv-table th:nth-child(6), .stv-table td:nth-child(6) { width: 12%; } /* Hile Türleri */
-.stv-table th:nth-child(7), .stv-table td:nth-child(7) { width: 12%; } /* Fungun Rapor */
-.stv-table th:nth-child(8), .stv-table td:nth-child(8) { width: 8%; } /* İşlemler */
+.stv-table th:nth-child(1), .stv-table td:nth-child(1) { width: 15%; text-align: center; } /* Oyuncu Adı */
+.stv-table th:nth-child(2), .stv-table td:nth-child(2) { width: 15%; text-align: center; } /* Steam ID */
+.stv-table th:nth-child(3), .stv-table td:nth-child(3) { width: 10%; text-align: center; } /* Steam Profil */
+.stv-table th:nth-child(4), .stv-table td:nth-child(4) { width: 20%; text-align: center; } /* Son Sunucu */
+.stv-table th:nth-child(5), .stv-table td:nth-child(5) { width: 8%; text-align: center; } /* Tespit Sayısı */
+.stv-table th:nth-child(6), .stv-table td:nth-child(6) { width: 12%; text-align: center; } /* Hile Türleri */
+.stv-table th:nth-child(7), .stv-table td:nth-child(7) { width: 12%; text-align: center; } /* Fungun Rapor */
+.stv-table th:nth-child(8), .stv-table td:nth-child(8) { width: 8%; text-align: center; } /* İşlemler */
 
 .stv-player-name.clickable { color: #60a5fa; cursor: pointer; transition: color 0.2s ease; display: inline-flex; align-items: center; gap: 8px; }
 .stv-player-name.clickable:hover { color: #93c5fd; }
