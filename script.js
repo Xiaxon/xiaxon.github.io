@@ -1,6 +1,5 @@
 // --- Global Değişkenler ---
 let cheaters = [];
-let tickets = []; // Yeni bilet verileri için
 let authToken = sessionStorage.getItem('stvAuthToken') || null;
 let sortColumn = 'createdAt';
 let sortDirection = 'desc';
@@ -8,124 +7,214 @@ let socket = null;
 let editingCheater = null;
 let editingHistory = null;
 let confirmCallback = null;
-let isTicketPage = false; // Sayfa tipini belirler
 
 const WS_URL = 'wss://stv-backend.onrender.com';
 const API_BASE_URL = 'https://stv-backend.onrender.com';
 
 // --- Sayfa Yüklendiğinde Başlat ---
 document.addEventListener('DOMContentLoaded', () => {
-    // URL kontrolü ile sayfa tipini belirle
-    isTicketPage = window.location.pathname.includes('tickets.html');
-
     setupEventListeners();
     connectWebSocket();
-    
-    // YENİ: Başlatma mantığı sayfa tipine göre ayrıldı
-    if (!isTicketPage) {
-        // Sadece Hileci Listesi sayfasında çalışacaklar
-        showWelcomeModal();
-        if (authToken) {
-            updateAdminUI();
-        }
+    showWelcomeModal();
+    if (authToken) {
+        updateAdminUI();
     }
 });
 
-// --- Yardımcı Fonksiyonlar (Arayüz ve Modal) ---
-function sanitize(str) {
-    if (!str) return '';
-    if (typeof str !== 'string') return str;
-    return str.replace(/&/g, '&amp;')
-              .replace(/</g, '&lt;')
-              .replace(/>/g, '&gt;')
-              .replace(/"/g, '&quot;')
-              .replace(/'/g, '&#039;');
+// --- Olay Dinleyicileri ---
+function setupEventListeners() {
+    document.getElementById('closeModalBtn').addEventListener('click', closeWelcomeModal);
+    document.getElementById('adminBtn').addEventListener('click', toggleAdminPanel);
+    document.getElementById('quickAddBtn').addEventListener('click', showAdminPanel);
+    document.getElementById('adminLoginBtn').addEventListener('click', handleAdminLogin);
+    document.getElementById('adminCancelBtn').addEventListener('click', closeAdminLoginModal);
+    document.getElementById('adminCloseBtn').addEventListener('click', closeAdminPanel);
+    document.getElementById('editCancelBtn').addEventListener('click', closeEditModal);
+    document.getElementById('confirmYes').addEventListener('click', handleConfirmYes);
+    document.getElementById('confirmNo').addEventListener('click', closeConfirmModal);
+    document.getElementById('cheaterForm').addEventListener('submit', handleSubmit);
+    document.getElementById('editForm').addEventListener('submit', handleEditSubmit);
+    document.getElementById('searchInput').addEventListener('input', updateDisplay);
+    document.getElementById('adminPassword').addEventListener('keypress', e => { if (e.key === 'Enter') handleAdminLogin(); });
+    document.querySelectorAll('.stv-table-header[data-sort]').forEach(th => {
+        th.addEventListener('click', () => sortTable(th.dataset.sort));
+    });
+    document.getElementById('editHistoryForm').addEventListener('submit', handleHistoryEditSubmit);
+    document.getElementById('editHistoryCancelBtn').addEventListener('click', closeEditHistoryModal);
 }
-function showToast(message, type = 'success') {
-    const toastContainer = document.getElementById('toastContainer');
-    if (!toastContainer) return;
-    const color = type === 'error' ? 'bg-red-600' : type === 'warning' ? 'bg-yellow-600' : 'bg-green-600';
-    const toast = document.createElement('div');
-    toast.className = `stv-toast ${color}`;
-    toast.innerHTML = `<p>${message}</p>`;
-    toastContainer.appendChild(toast);
-    setTimeout(() => {
-        toast.classList.add('hide');
-        toast.addEventListener('transitionend', () => toast.remove());
-    }, 4000);
+
+// --- WebSocket Fonksiyonları ---
+function connectWebSocket() {
+    showConnectionStatus(true, 'Sunucuya bağlanılıyor...');
+    socket = new WebSocket(WS_URL);
+    socket.onopen = () => showConnectionStatus(false);
+    socket.onclose = () => {
+        showConnectionStatus(true, 'Bağlantı kesildi, yeniden deneniyor...');
+        setTimeout(connectWebSocket, 5000);
+    };
+    socket.onerror = () => showConnectionStatus(true, 'Bağlantı hatası!');
+    socket.onmessage = event => handleWebSocketMessage(JSON.parse(event.data));
 }
-function showSuccessToast(message) { showToast(message, 'success'); }
-function showErrorToast(message) { showToast(message, 'error'); }
-function showConfirmModal(title, message, callback) {
-    const confirmModal = document.getElementById('confirmModal');
-    if (!confirmModal) return;
-    document.getElementById('confirmMessage').textContent = message;
-    confirmCallback = callback;
-    confirmModal.style.display = 'flex';
-}
-function closeConfirmModal() {
-    const confirmModal = document.getElementById('confirmModal');
-    if (confirmModal) { confirmModal.style.display = 'none'; }
-    confirmCallback = null;
-}
-function handleConfirmYes() {
-    if (confirmCallback) { confirmCallback(); }
-    closeConfirmModal();
-}
-function showWelcomeModal() {
-    if (document.getElementById('welcomeModal')) { document.getElementById('welcomeModal').style.display = 'flex'; }
-}
-function closeWelcomeModal() {
-    if (document.getElementById('welcomeModal')) { document.getElementById('welcomeModal').style.display = 'none'; }
-}
-function updateFooter(count) {
-    const cheaterCountDisplay = document.getElementById('cheaterCountDisplay');
-    const lastUpdateTime = document.getElementById('lastUpdateTime');
-    if (cheaterCountDisplay) cheaterCountDisplay.textContent = count;
-    if (lastUpdateTime) lastUpdateTime.textContent = new Date().toLocaleTimeString();
-}
-function sortByColumn(a, b) {
-    const aVal = a[sortColumn] || '';
-    const bVal = b[sortColumn] || '';
-    let comparison = 0;
-    if (typeof aVal === 'number' && typeof bVal === 'number') {
-        comparison = aVal - bVal;
-    } else {
-        comparison = aVal.toString().localeCompare(bVal.toString());
+
+function handleWebSocketMessage(message) {
+    const { type, data } = message;
+    let toastMessage = '';
+    let needsUpdate = true;
+
+    switch (type) {
+        case 'INITIAL_DATA': cheaters = data; break;
+        case 'CHEATER_ADDED': cheaters.unshift(data); toastMessage = `${data.playerName} eklendi.`; break;
+        case 'CHEATER_UPDATED': {
+            const index = cheaters.findIndex(c => c._id === data._id);
+            if (index !== -1) cheaters[index] = data;
+            toastMessage = `${data.playerName} güncellendi.`;
+            const existingHistoryRow = document.querySelector(`.history-for-${data._id}`);
+            if (existingHistoryRow) {
+                const mainRow = document.querySelector(`tr[data-id="${data._id}"]`);
+                if (mainRow) {
+                    const icon = mainRow.querySelector('.history-icon');
+                    icon?.classList.remove('rotated');
+                    document.querySelectorAll(`.history-for-${data._id}`).forEach(row => row.remove());
+                    togglePlayerHistory(mainRow);
+                }
+            }
+            break;
+        }
+        case 'CHEATER_DELETED': {
+            cheaters = cheaters.filter(c => c._id !== data._id);
+            toastMessage = `Hileci silindi.`;
+            break;
+        }
+        case 'ERROR_OCCURRED': 
+            showToast(data.message, 'error'); 
+            needsUpdate = false;
+            break;
     }
-    return sortDirection === 'asc' ? comparison : comparison * -1;
+    
+    if (needsUpdate) {
+        if (toastMessage) showToast(toastMessage, 'success');
+        updateLastUpdateTime();
+        updateDisplay();
+    }
 }
-// Hileci geçmişi fonksiyonları (Kullanıcının eski script'inden geri getirildi)
-function closeEditHistoryModal() {
-    document.getElementById('editHistoryModal').style.display = 'none';
-    editingHistory = null;
+
+function sendMessage(type, data) {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({ type, data, token: authToken }));
+        return true;
+    }
+    showToast('Sunucu bağlantısı yok!', 'error');
+    return false;
 }
+
+// --- Form Gönderme İşlemleri ---
+function handleSubmit(e) {
+    e.preventDefault();
+    const cheaterData = {
+        playerName: document.getElementById('playerName').value.trim(),
+        steamId: document.getElementById('steamId').value.trim(),
+        steamProfile: document.getElementById('steamProfile').value.trim(),
+        serverName: document.getElementById('serverName').value.trim() || "Bilinmiyor",
+        cheatTypes: document.getElementById('cheatTypes').value.split(',').map(t => t.trim()).filter(Boolean),
+        fungunReport: document.getElementById('fungunReport').value.trim()
+    };
+    if (!cheaterData.playerName || !cheaterData.steamId) {
+        showToast('Oyuncu Adı ve Steam ID zorunludur!', 'error');
+        return;
+    }
+    if (sendMessage('CHEATER_ADDED', cheaterData)) closeAdminPanel();
+}
+
+function handleEditSubmit(e) {
+    e.preventDefault();
+    if (!editingCheater) return;
+    const updatedData = {
+        _id: editingCheater._id,
+        playerName: document.getElementById('editPlayerName').value.trim(),
+        steamId: document.getElementById('editSteamId').value.trim(),
+        steamProfile: document.getElementById('editSteamProfile').value.trim(),
+        serverName: document.getElementById('editServerName').value.trim() || "Bilinmiyor",
+        detectionCount: parseInt(document.getElementById('editDetectionCount').value),
+        cheatTypes: document.getElementById('editCheatTypes').value.split(',').map(t => t.trim()).filter(Boolean),
+        fungunReport: document.getElementById('editFungunReport').value.trim()
+    };
+    if (sendMessage('CHEATER_UPDATED', updatedData)) closeEditModal();
+}
+
 function handleHistoryEditSubmit(e) {
     e.preventDefault();
-    showErrorToast('Bu özellik şimdilik devre dışıdır.'); // Güvenli olması için devre dışı bıraktık.
+    if (!editingHistory) return;
+    const updatedHistoryData = {
+        playerName: document.getElementById('editHistoryPlayerName').value.trim(),
+        steamId: document.getElementById('editHistorySteamId').value.trim(),
+        steamProfile: document.getElementById('editHistorySteamProfile').value.trim(),
+        serverName: document.getElementById('editHistoryServerName').value.trim(),
+        cheatTypes: document.getElementById('editHistoryCheatTypes').value.split(',').map(t => t.trim()).filter(Boolean),
+        fungunReport: document.getElementById('editHistoryFungunReport').value.trim()
+    };
+    sendMessage('HISTORY_ENTRY_UPDATED', {
+        cheaterId: editingHistory.cheaterId,
+        historyId: editingHistory.historyId,
+        updatedHistoryData
+    });
     closeEditHistoryModal();
 }
-function deleteHistoryEntry(cheaterId, historyId) {
-    showConfirmModal('Bu tespit geçmişi kaydı kalıcı olarak silinecek. Emin misiniz?', () => {
-        showErrorToast('Bu özellik şimdilik devre dışıdır.'); // Güvenli olması için devre dışı bıraktık.
+
+// --- CRUD Buton Fonksiyonları ---
+function showEditModal(cheaterId) {
+    editingCheater = cheaters.find(c => c._id === cheaterId);
+    if (!editingCheater) return;
+    document.getElementById('editPlayerName').value = editingCheater.playerName;
+    document.getElementById('editSteamId').value = editingCheater.steamId;
+    document.getElementById('editSteamProfile').value = editingCheater.steamProfile || '';
+    document.getElementById('editServerName').value = editingCheater.serverName;
+    document.getElementById('editDetectionCount').value = editingCheater.detectionCount;
+    document.getElementById('editCheatTypes').value = (editingCheater.cheatTypes || []).join(', ');
+    document.getElementById('editFungunReport').value = editingCheater.fungunReport || '';
+    document.getElementById('editModal').style.display = 'flex';
+}
+
+function deleteCheater(cheaterId) {
+    const cheater = cheaters.find(c => c._id === cheaterId);
+    if (!cheater) return;
+    showConfirmModal(`'${cheater.playerName}' adlı ana kayıt silinecek. Tüm geçmişi de silinir. Emin misiniz?`, () => {
+        sendMessage('CHEATER_DELETED', { _id: cheaterId });
     });
 }
-function editHistoryEntry(cheaterId, historyId) {
-    showErrorToast('Bu özellik şimdilik devre dışıdır.'); // Güvenli olması için devre dışı bıraktık.
+
+function deleteHistoryEntry(cheaterId, historyId) {
+    showConfirmModal('Bu tespit geçmişi kaydı kalıcı olarak silinecek. Emin misiniz?', () => {
+        sendMessage('HISTORY_ENTRY_DELETED', { cheaterId, historyId });
+    });
 }
+
+function editHistoryEntry(cheaterId, historyId) {
+    const cheater = cheaters.find(c => c._id === cheaterId);
+    if (!cheater) return;
+    const historyEntry = cheater.history.find(h => h._id === historyId);
+    if (!historyEntry) return;
+    editingHistory = { cheaterId, historyId };
+    document.getElementById('editHistoryPlayerName').value = historyEntry.playerName || cheater.playerName;
+    document.getElementById('editHistorySteamId').value = historyEntry.steamId || cheater.steamId;
+    document.getElementById('editHistorySteamProfile').value = historyEntry.steamProfile || cheater.steamProfile || '';
+    document.getElementById('editHistoryServerName').value = historyEntry.serverName || '';
+    document.getElementById('editHistoryCheatTypes').value = (historyEntry.cheatTypes || []).join(', ');
+    document.getElementById('editHistoryFungunReport').value = historyEntry.fungunReport || '';
+    document.getElementById('editHistoryModal').style.display = 'flex';
+}
+
 function togglePlayerHistory(rowElement) {
     const cheaterId = rowElement.dataset.id;
     const icon = rowElement.querySelector('.history-icon');
     const isLoggedIn = !!authToken;
     
-    // Açık olan geçmişi kapat
     const currentlyOpen = document.querySelectorAll(`.history-for-${cheaterId}`);
     if (currentlyOpen.length > 0) {
         currentlyOpen.forEach(row => row.remove());
         icon?.classList.remove('rotated');
         return;
     }
-    // Diğer açık olan geçmişleri kapat
+
     document.querySelectorAll('.stv-history-row').forEach(row => row.remove());
     document.querySelectorAll('.history-icon.rotated').forEach(i => i.classList.remove('rotated'));
 
@@ -135,15 +224,14 @@ function togglePlayerHistory(rowElement) {
         return;
     }
     
-    // Yeni geçmişi aç
     icon?.classList.add('rotated');
     const historyRowsHTML = cheater.history.map(item => {
         const itemDate = new Date(item.date).toLocaleString('tr-TR');
-        const playerName = sanitize(item.playerName || cheater.playerName);
-        const steamId = sanitize(item.steamId || cheater.steamId);
-        const steamProfile = sanitize(item.steamProfile || cheater.steamProfile);
-        const itemServer = sanitize(item.serverName || 'Bilinmiyor');
-        const itemCheats = (item.cheatTypes || []).map(type => `<span class="stv-cheat-type">${sanitize(type)}</span>`).join('');
+        const playerName = item.playerName || cheater.playerName;
+        const steamId = item.steamId || cheater.steamId;
+        const steamProfile = item.steamProfile || cheater.steamProfile;
+        const itemServer = item.serverName || 'Bilinmiyor';
+        const itemCheats = (item.cheatTypes || []).map(type => `<span class="stv-cheat-type">${type}</span>`).join('');
         const fungunReport = item.fungunReport || '';
         
         const adminActionsHTML = isLoggedIn ? `
@@ -162,7 +250,7 @@ function togglePlayerHistory(rowElement) {
                 <td class="p-3">${itemServer}</td>
                 <td class="p-3">-</td>
                 <td class="p-3">${itemCheats}</td>
-                <td class="p-3">${(fungunReport).split(',').map(link => link.trim()).filter(Boolean).map(link => `<a href="${sanitize(link)}" target="_blank" class="text-red-400 hover:underline block">Rapor</a>`).join('') || 'Yok'}</td>
+                <td class="p-3">${(fungunReport).split(',').map(link => link.trim()).filter(Boolean).map(link => `<a href="${link}" target="_blank" class="text-red-400 hover:underline block">Rapor</a>`).join('') || 'Yok'}</td>
                 ${adminActionsHTML}
             </tr>`;
     }).join('');
@@ -170,594 +258,151 @@ function togglePlayerHistory(rowElement) {
     rowElement.insertAdjacentHTML('afterend', historyRowsHTML);
 }
 
+// --- Modal Kontrol Fonksiyonları ---
+function showWelcomeModal() { document.getElementById('welcomeModal').style.display = 'flex'; }
+function closeWelcomeModal() { document.getElementById('welcomeModal').style.display = 'none'; }
+function toggleAdminPanel() { authToken ? showAdminPanel() : showAdminLoginModal(); }
+function showAdminLoginModal() { document.getElementById('adminLoginModal').style.display = 'flex'; document.getElementById('adminPassword').focus(); }
+function closeAdminLoginModal() { document.getElementById('adminLoginModal').style.display = 'none'; document.getElementById('adminPassword').value = ''; }
+function showAdminPanel() { document.getElementById('adminPanelModal').style.display = 'flex'; document.getElementById('cheaterForm').reset(); }
+function closeAdminPanel() { document.getElementById('adminPanelModal').style.display = 'none'; }
+function closeEditModal() { document.getElementById('editModal').style.display = 'none'; editingCheater = null; }
+function closeEditHistoryModal() { document.getElementById('editHistoryModal').style.display = 'none'; editingHistory = null; }
+function showConfirmModal(message, callback) { document.getElementById('confirmMessage').textContent = message; document.getElementById('confirmModal').style.display = 'flex'; confirmCallback = callback; }
+function closeConfirmModal() { document.getElementById('confirmModal').style.display = 'none'; confirmCallback = null; }
+function handleConfirmYes() { if (confirmCallback) { confirmCallback(); } closeConfirmModal(); }
 
-// --- Olay Dinleyicileri (SetupEventListeners) ---
-function setupEventListeners() {
-    // Tüm sayfalarda ortak olanlar
-    document.getElementById('confirmYes')?.addEventListener('click', handleConfirmYes);
-    document.getElementById('confirmNo')?.addEventListener('click', closeConfirmModal);
-    
-    // Bilet Sayfasına Özel Dinleyiciler
-    if (isTicketPage) {
-        document.getElementById('openTicketModalBtn')?.addEventListener('click', showCreateTicketModal);
-        document.getElementById('ticketCancelBtn')?.addEventListener('click', closeCreateTicketModal);
-        document.getElementById('ticketForm')?.addEventListener('submit', handleCreateTicket);
-        document.getElementById('acceptCancelBtn')?.addEventListener('click', closeAcceptTicketModal);
-        document.getElementById('acceptTicketForm')?.addEventListener('submit', handleAcceptTicket);
-    } 
-    // Hileci Sayfasına Özel Dinleyiciler (index.html)
-    else {
-        document.getElementById('closeModalBtn')?.addEventListener('click', closeWelcomeModal);
-        document.getElementById('adminBtn')?.addEventListener('click', toggleAdminPanel);
-        document.getElementById('quickAddBtn')?.addEventListener('click', showAdminPanel);
-        document.getElementById('adminLoginBtn')?.addEventListener('click', handleAdminLogin);
-        document.getElementById('adminCancelBtn')?.addEventListener('click', closeAdminLoginModal);
-        document.getElementById('adminCloseBtn')?.addEventListener('click', closeAdminPanel);
-        document.getElementById('editCancelBtn')?.addEventListener('click', closeEditModal);
-        document.getElementById('cheaterForm')?.addEventListener('submit', handleAddCheater);
-        document.getElementById('editForm')?.addEventListener('submit', handleEditSave);
-        document.getElementById('searchInput')?.addEventListener('input', handleSearch);
-        document.getElementById('adminPassword')?.addEventListener('keypress', e => { if (e.key === 'Enter') handleAdminLogin(e); });
-        document.getElementById('editHistoryForm')?.addEventListener('submit', handleHistoryEditSubmit);
-        document.getElementById('editHistoryCancelBtn')?.addEventListener('click', closeEditHistoryModal);
-        document.querySelectorAll('.stv-table-header[data-sort]').forEach(header => {
-            header.addEventListener('click', handleSort);
-        });
-    }
-}
-
-
-// --- WebSocket Bağlantısı ve Veri Yönetimi ---
-function connectWebSocket() {
-    socket = new WebSocket(WS_URL);
-
-    socket.onopen = () => {
-        console.log('WebSocket bağlantısı kuruldu.');
-    };
-
-    socket.onmessage = (event) => {
-        try {
-            const data = JSON.parse(event.data);
-            const { type, data: payload } = data;
-
-            switch (type) {
-                case 'INITIAL_DATA':
-                    if (!isTicketPage) { // Sadece Hileci sayfasında yükle
-                        cheaters = payload.cheaters;
-                        cheaters.sort(sortByColumn);
-                        renderCheaters(cheaters);
-                        updateFooter(cheaters.length);
-                    } else { // Sadece Bilet sayfasında yükle
-                        tickets = payload.openTickets;
-                        renderTickets(tickets);
-                    }
-                    break;
-                case 'CHEATER_ADDED':
-                case 'CHEATER_UPDATED':
-                case 'CHEATER_DELETED':
-                    if (!isTicketPage) {
-                        handleCheaterUpdate(type, payload.data);
-                    }
-                    break;
-                    
-                // --- Bilet Güncellemeleri ---
-                case 'MATCH_TICKET_ADDED':
-                    if (isTicketPage && payload.data.status === 'Açık') {
-                        tickets.unshift(payload.data);
-                        renderTickets(tickets);
-                    }
-                    showSuccessToast('Yeni bir 5v5 Maç Bileti açıldı!');
-                    break;
-                
-                case 'MATCH_TICKET_UPDATED':
-                    if (isTicketPage) {
-                        const index = tickets.findIndex(t => t._id === payload.data._id);
-                        if (payload.data.status === 'Eşleşti') {
-                            tickets = tickets.filter(t => t._id !== payload.data._id);
-                        } else if (index !== -1) {
-                            tickets[index] = payload.data;
-                        }
-                        renderTickets(tickets);
-                    }
-                    if (payload.data.status === 'Eşleşti') {
-                        showSuccessToast(`Maç Bileti (${payload.data.clanName}) eşleşti!`);
-                    }
-                    break;
-                    
-                case 'USER_COUNT_UPDATE':
-                    // Her iki sayfada da göster
-                    const userCountDisplay = document.getElementById('userCountDisplay');
-                    if (userCountDisplay) {
-                         userCountDisplay.textContent = payload.data.count;
-                    }
-                    break;
-                case 'ERROR_OCCURRED':
-                    showErrorToast(`Sunucu Hatası: ${payload.data.message}`);
-                    break;
-                default:
-                    console.log('Bilinmeyen WS tipi:', type);
-            }
-        } catch (error) {
-            console.error('WebSocket veri işleme hatası:', error);
-        }
-    };
-    
-    socket.onclose = (e) => {
-        console.warn('WebSocket bağlantısı kesildi. Yeniden bağlanılıyor...', e.reason);
-        setTimeout(connectWebSocket, 5000);
-    };
-
-    socket.onerror = (err) => {
-        console.error('WebSocket Hatası:', err);
-    };
-}
-
-
-// --- HİLECİ LİSTESİ MANTIĞI (Sadece index.html) ---
-
-function handleCheaterUpdate(type, data) {
-    switch (type) {
-        case 'CHEATER_ADDED':
-            cheaters.push(data);
-            break;
-        case 'CHEATER_UPDATED':
-            const updateIndex = cheaters.findIndex(c => c._id === data._id);
-            if (updateIndex !== -1) {
-                // Ana kaydı güncelle
-                cheaters[updateIndex] = {
-                    ...cheaters[updateIndex],
-                    ...data,
-                    history: cheaters[updateIndex].history // Geçmiş kaydı koru
-                };
-            }
-            break;
-        case 'CHEATER_DELETED':
-            cheaters = cheaters.filter(c => c._id !== data._id);
-            break;
-    }
-    
-    cheaters.sort(sortByColumn);
-    renderCheaters(cheaters);
-    updateFooter(cheaters.length);
-}
-
-function filterAndSort(list) {
-    const searchInput = document.getElementById('searchInput');
-    if (!searchInput) return list;
-    
-    const searchTerm = searchInput.value.toLowerCase();
-    
-    const filteredList = list.filter(cheater => 
-        (cheater.playerName && cheater.playerName.toLowerCase().includes(searchTerm)) ||
-        (cheater.steamId && cheater.steamId.toLowerCase().includes(searchTerm)) ||
-        (cheater.serverName && cheater.serverName.toLowerCase().includes(searchTerm))
-    );
-    
-    return filteredList;
-}
-
-function renderCheaters(cheaterList) {
-    const tableBody = document.getElementById('cheaterTableBody');
-    if (!tableBody) return; 
-
-    const isLoggedIn = !!authToken;
-    const filteredList = filterAndSort(cheaterList);
-
-    const actionsHeader = document.getElementById('actionsHeader');
-    if (actionsHeader) actionsHeader.style.display = isLoggedIn ? 'table-cell' : 'none';
-    const colSpan = isLoggedIn ? 8 : 7;
-    
-    if (filteredList.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="${colSpan}" class="text-center py-10 text-gray-400">Aradığınız kriterlere uygun hileci bulunamadı.</td></tr>`;
+// --- Admin Giriş Fonksiyonları (Sunucuya Bağlı) ---
+async function handleAdminLogin() {
+    const password = document.getElementById('adminPassword').value;
+    if (!password) {
+        showToast('Lütfen şifreyi girin.', 'error');
         return;
     }
-
-    tableBody.innerHTML = filteredList.map(cheater => `
-        <tr class="stv-table-row" data-id="${cheater._id}">
-            <td class="p-3">
-                <span class="stv-player-name ${cheater.detectionCount > 1 ? 'clickable' : ''}" ${cheater.detectionCount > 1 ? `onclick="togglePlayerHistory(this.closest('tr'))"` : ''}>
-                    ${sanitize(cheater.playerName)}
-                    ${cheater.detectionCount > 1 ? `<i class="fas fa-chevron-down ml-2 history-icon"></i>` : ''}
-                </span>
-            </td>
-            <td class="p-3"><code>${sanitize(cheater.steamId)}</code></td>
-            <td class="p-3">${cheater.steamProfile ? `<a href="${sanitize(cheater.steamProfile)}" target="_blank" class="text-blue-400 hover:underline">Profil</a>` : 'Yok'}</td>
-            <td class="p-3">${sanitize(cheater.serverName)}</td>
-            <td class="p-3"><span class="stv-detection-count">${cheater.detectionCount}</span></td>
-            <td class="p-3">${(cheater.cheatTypes || []).map(type => `<span class="stv-cheat-type">${sanitize(type)}</span>`).join('')}</td>
-            <td class="p-3">${(cheater.fungunReport || '').split(',').map(link => link.trim()).filter(Boolean).map(link => `<a href="${sanitize(link)}" target="_blank" class="text-red-400 hover:underline block">Rapor</a>`).join('') || 'Yok'}</td>
-            ${isLoggedIn ? `
-                <td class="p-3">
-                    <div class="stv-action-buttons">
-                        <button onclick="showEditModal('${cheater._id}')" class="stv-action-btn stv-edit-btn" title="Ana Kaydı Düzenle"><i class="fas fa-edit"></i></button>
-                        <button onclick="deleteCheater('${cheater._id}')" class="stv-action-btn stv-delete-btn" title="Sil"><i class="fas fa-trash"></i></button>
-                    </div>
-                </td>
-            ` : ''}
-        </tr>
-    `).join('');
-}
-
-
-function handleSort(e) {
-    const newSortColumn = e.currentTarget.getAttribute('data-sort');
-    if (newSortColumn === sortColumn) {
-        sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-    } else {
-        sortColumn = newSortColumn;
-        sortDirection = 'desc';
-    }
-
-    document.querySelectorAll('.stv-table-header[data-sort]').forEach(header => {
-        header.classList.remove('sorted-asc', 'sorted-desc');
-    });
-
-    e.currentTarget.classList.add(`sorted-${sortDirection}`);
-    
-    cheaters.sort(sortByColumn);
-    renderCheaters(cheaters);
-}
-
-function handleSearch(e) {
-    renderCheaters(cheaters);
-}
-
-
-// Admin Panel Fonksiyonları
-function updateAdminUI() {
-    const isAdmin = !!authToken;
-    const adminBtn = document.getElementById('adminBtn');
-    const quickAddBtn = document.getElementById('quickAddBtn');
-    
-    if (adminBtn) adminBtn.innerHTML = isAdmin ? '<i class="fas fa-user-shield text-lg mr-2"></i>Admin ✓' : '<i class="fas fa-user-shield text-lg mr-2"></i>Admin';
-    if (quickAddBtn) quickAddBtn.style.display = isAdmin ? 'flex' : 'none';
-
-    // Logout/Login Event'ını güncelle
-    if (isAdmin) {
-        if (adminBtn) adminBtn.removeEventListener('click', toggleAdminPanel);
-        if (adminBtn) adminBtn.addEventListener('click', handleAdminLogout);
-    } else {
-        if (adminBtn) adminBtn.removeEventListener('click', handleAdminLogout);
-        if (adminBtn) adminBtn.addEventListener('click', toggleAdminPanel);
-        closeAdminPanel(); // Çıkış yapınca paneli kapat
-    }
-    
-    renderCheaters(cheaters); // İşlem sütunlarını güncellemek için render et
-}
-
-function handleAdminLogout() {
-    showConfirmModal('Çıkış Onayı', 'Yönetici panelinden çıkış yapmak istediğinizden emin misiniz?', () => {
-        sessionStorage.removeItem('stvAuthToken');
-        authToken = null;
-        updateAdminUI();
-        showSuccessToast('Yönetici panelinden başarıyla çıkış yapıldı.');
-    });
-}
-
-function toggleAdminPanel() {
-    if (authToken) {
-        showAdminPanel();
-    } else {
-        showAdminLoginModal();
-    }
-}
-
-function showAdminLoginModal() {
-    document.getElementById('adminLoginModal').style.display = 'flex';
-    document.getElementById('adminPassword').focus();
-}
-
-function closeAdminLoginModal() {
-    document.getElementById('adminLoginModal').style.display = 'none';
-    document.getElementById('adminPassword').value = '';
-}
-
-async function handleAdminLogin(e) {
-    if(e && e.preventDefault) e.preventDefault(); // Enter tuşu için
-    const password = document.getElementById('adminPassword').value;
-    const loginBtn = document.getElementById('adminLoginBtn');
-    if(loginBtn) loginBtn.disabled = true;
-
     try {
         const response = await fetch(`${API_BASE_URL}/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ password })
+            body: JSON.stringify({ password: password })
         });
         const result = await response.json();
-
-        if (response.ok) {
+        if (response.ok && result.token) {
             authToken = result.token;
             sessionStorage.setItem('stvAuthToken', authToken);
             closeAdminLoginModal();
             updateAdminUI();
-            showSuccessToast('Yönetici girişi başarılı!');
+            showToast('Giriş başarılı!', 'success');
         } else {
-            showErrorToast(result.message || 'Giriş başarısız.');
+            showToast(result.message || 'Hatalı şifre!', 'error');
         }
     } catch (error) {
-        showErrorToast('Sunucuya ulaşılamadı.');
-    } finally {
-        if(loginBtn) loginBtn.disabled = false;
+        showToast('Giriş yapılırken bir sunucu hatası oluştu.', 'error');
+        console.error('Login Error:', error);
     }
 }
 
-function showAdminPanel() {
-    document.getElementById('adminPanelModal').style.display = 'flex';
+function updateAdminUI() {
+    const isLoggedIn = !!authToken;
+    document.getElementById('adminBtn').innerHTML = `<i class="fas fa-user-shield mr-2"></i> ${isLoggedIn ? 'Admin ✓' : 'Admin'}`;
+    document.getElementById('quickAddBtn').style.display = isLoggedIn ? 'flex' : 'none';
+    document.getElementById('actionsHeader').style.display = isLoggedIn ? 'table-cell' : 'none';
+    updateDisplay();
 }
 
-function closeAdminPanel() {
-    document.getElementById('adminPanelModal').style.display = 'none';
-    document.getElementById('cheaterForm').reset();
+// --- Arayüz Güncelleme ve Yardımcı Fonksiyonlar ---
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.style.cssText = `position: fixed; bottom: 20px; left: 20px; background: ${type === 'error' ? '#b91c1c' : type === 'success' ? '#16a34a' : '#2563eb'}; color: white; padding: 14px 22px; border-radius: 8px; z-index: 10001; font-weight: 500; box-shadow: 0 5px 15px rgba(0,0,0,0.3); opacity: 0; transition: opacity 0.4s ease, visibility 0.4s ease; visibility: hidden;`;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => {
+        toast.style.opacity = '1';
+        toast.style.visibility = 'visible';
+    }, 100);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => {
+            if (document.body.contains(toast)) {
+                document.body.removeChild(toast);
+            }
+        }, 400);
+    }, 4000);
+}
+function showConnectionStatus(isConnecting, message = '') {
+    const statusDiv = document.getElementById('connectionStatus');
+    statusDiv.style.display = isConnecting ? 'block' : 'none';
+    if (isConnecting) statusDiv.innerHTML = `<div class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-yellow-900/20 text-yellow-400 border border-yellow-500/30">${message}</div>`;
+}
+function updateLastUpdateTime() { document.getElementById('lastUpdateTime').textContent = new Date().toLocaleString('tr-TR'); }
+
+// --- Tablo Sıralama ve Görüntüleme ---
+function sortTable(column) {
+    if (sortColumn === column) {
+        sortDirection = sortDirection === 'desc' ? 'asc' : 'desc';
+    } else {
+        sortColumn = column;
+        sortDirection = 'desc';
+    }
+    updateDisplay();
 }
 
-async function handleAddCheater(e) {
-    e.preventDefault();
-    if (!authToken) {
-        showErrorToast('Bu işlemi yapmak için yönetici olmalısınız!');
-        return;
-    }
-
-    const cheaterData = {
-        playerName: document.getElementById('playerName').value,
-        steamId: document.getElementById('steamId').value,
-        steamProfile: document.getElementById('steamProfile').value,
-        serverName: document.getElementById('serverName').value,
-        cheatTypes: document.getElementById('cheatTypes').value.split(',').map(t => t.trim()).filter(Boolean),
-        fungunReport: document.getElementById('fungunReport').value.split(',').map(t => t.trim()).filter(Boolean)
-    };
-
-    if (!socket || socket.readyState !== WebSocket.OPEN) {
-        showErrorToast('Sunucuya bağlı değil.');
-        return;
-    }
-
-    socket.send(JSON.stringify({
-        type: 'CHEATER_ADDED',
-        data: cheaterData,
-        token: authToken
-    }));
-
-    closeAdminPanel();
-    showSuccessToast('Hileci verisi gönderildi. Liste güncellenecektir.');
-}
-
-function showEditModal(cheaterId) {
-    if (!authToken) {
-        showErrorToast('Bu işlemi yapmak için yönetici olmalısınız!');
-        return;
-    }
+function updateDisplay() {
+    const tableBody = document.getElementById('cheaterTableBody');
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const isLoggedIn = !!authToken;
     
-    editingCheater = cheaters.find(c => c._id === cheaterId);
-    if (!editingCheater) return;
-
-    document.getElementById('editPlayerName').value = editingCheater.playerName;
-    document.getElementById('editSteamId').value = editingCheater.steamId;
-    document.getElementById('editSteamProfile').value = editingCheater.steamProfile || '';
-    document.getElementById('editServerName').value = editingCheater.serverName;
-    document.getElementById('editDetectionCount').value = editingCheater.detectionCount;
-    document.getElementById('editCheatTypes').value = (editingCheater.cheatTypes || []).join(', ');
-    document.getElementById('editFungunReport').value = (editingCheater.fungunReport || []).join(', ');
-    
-    document.getElementById('editModal').style.display = 'flex';
-}
-
-function closeEditModal() {
-    document.getElementById('editModal').style.display = 'none';
-    editingCheater = null;
-    document.getElementById('editForm').reset();
-}
-
-async function handleEditSave(e) {
-    e.preventDefault();
-    
-    const updatedMainData = {
-        _id: editingCheater._id,
-        playerName: document.getElementById('editPlayerName').value,
-        steamId: document.getElementById('editSteamId').value,
-        steamProfile: document.getElementById('editSteamProfile').value,
-        serverName: document.getElementById('editServerName').value,
-        detectionCount: parseInt(document.getElementById('editDetectionCount').value),
-        cheatTypes: document.getElementById('editCheatTypes').value.split(',').map(t => t.trim()).filter(Boolean),
-        fungunReport: document.getElementById('editFungunReport').value.split(',').map(t => t.trim()).filter(Boolean)
-    };
-    
-    if (!socket || socket.readyState !== WebSocket.OPEN) {
-        showErrorToast('Sunucuya bağlı değil.');
-        return;
-    }
-
-    socket.send(JSON.stringify({
-        type: 'CHEATER_UPDATED',
-        data: updatedMainData,
-        token: authToken
-    }));
-
-    closeEditModal();
-    showSuccessToast('Ana kayıt güncellendi. Liste anında güncellenecektir.');
-}
-
-function deleteCheater(cheaterId) {
-    if (!authToken) {
-        showErrorToast('Bu işlemi yapmak için yönetici olmalısınız!');
-        return;
-    }
-
-    showConfirmModal('Silme Onayı', 'Bu hileci kaydını kalıcı olarak silmek istediğinizden emin misiniz?', () => {
-        if (!socket || socket.readyState !== WebSocket.OPEN) {
-            showErrorToast('Sunucuya bağlı değil.');
-            return;
+    let filteredCheaters = cheaters.filter(c => {
+        // Ana kayıt kontrolü
+        if ((c.playerName && c.playerName.toLowerCase().includes(searchTerm)) ||
+            (c.steamId && c.steamId.toLowerCase().includes(searchTerm))) {
+            return true;
         }
-
-        socket.send(JSON.stringify({
-            type: 'CHEATER_DELETED',
-            data: { _id: cheaterId },
-            token: authToken
-        }));
-        showSuccessToast('Hileci silme isteği gönderildi. Liste güncellenecektir.');
+        // Geçmiş kayıtlardaki isimleri de kontrol et
+        if (c.history && c.history.length > 0) {
+            return c.history.some(h => 
+                (h.playerName && h.playerName.toLowerCase().includes(searchTerm)) ||
+                (h.steamId && h.steamId.toLowerCase().includes(searchTerm))
+            );
+        }
+        return false;
     });
-}
 
+    filteredCheaters.sort((a, b) => {
+        const aVal = a[sortColumn] || '';
+        const bVal = b[sortColumn] || '';
+        const comparison = String(aVal).localeCompare(String(bVal), undefined, {numeric: true});
+        return sortDirection === 'asc' ? comparison : -comparison;
+    });
 
-// --- 5V5 MAÇ BİLET MANTIĞI (tickets.html) ---
-
-function renderTickets(ticketList) {
-    const tableBody = document.getElementById('ticketTableBody');
-    if (!tableBody) return; 
-
-    if (!ticketList || ticketList.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="5" class="text-center py-10 text-gray-400">Şu anda aktif maç bileti bulunmamaktadır. İlk bileti siz açın!</td></tr>`;
-        return;
-    }
-
-    tableBody.innerHTML = ticketList.map(ticket => `
-        <tr class="stv-table-row stv-ticket-row stv-status-${ticket.status.toLowerCase().replace(' ', '-')}" data-ticket-id="${ticket._id}">
-            <td class="p-3">
-                <span class="font-bold text-lg text-green-400 block">${sanitize(ticket.clanName)}</span>
-                <span class="text-xs text-gray-500 break-all">${sanitize(ticket.contactInfo)}</span>
-            </td>
-            <td class="p-3">${sanitize(ticket.schedule) || 'Belirtilmemiş'}</td>
-            <td class="p-3">
-                ${(ticket.mapPreference || []).map(map => `<span class="stv-tag stv-map-tag">${sanitize(map)}</span>`).join('') || 'Fark Etmez'}
-            </td>
-            <td class="p-3 text-sm text-gray-400">${sanitize(ticket.notes) || 'Yok'}</td>
-            <td class="p-3">
-                ${ticket.status === 'Açık' ? 
-                    `<button onclick="showAcceptTicketModal('${ticket._id}')" class="stv-action-btn stv-accept-btn" title="Kabul Et ve Eşleş">
-                        <i class="fas fa-handshake mr-1"></i>Kabul Et
-                    </button>` : 
-                    `<span class="stv-status-badge stv-status-matched">Eşleşti!</span>`
-                }
-            </td>
-        </tr>
-        ${ticket.status === 'Eşleşti' ? 
-            `<tr class="stv-table-row stv-matched-info">
-                <td colspan="5" class="p-3 text-left bg-gray-900/50">
-                    <p class="text-sm font-semibold text-yellow-300">
-                        <i class="fas fa-info-circle mr-2"></i>Eşleşme Detayları:
-                    </p>
-                    <p class="ml-5 text-gray-400 text-sm">
-                        Kabul Eden Klan: <span class="font-bold">${sanitize(ticket.challengerInfo.clanName)}</span>
-                    </p>
-                    <p class="ml-5 text-gray-400 text-sm">
-                        İletişim: <span class="break-all">${sanitize(ticket.challengerInfo.contactInfo)}</span>
-                    </p>
+    const colSpan = isLoggedIn ? 8 : 7;
+    document.getElementById('actionsHeader').style.display = isLoggedIn ? 'table-cell' : 'none';
+    if (filteredCheaters.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="${colSpan}" class="text-center py-10 text-gray-400">Yükleniyor veya kayıt bulunamadı...</td></tr>`;
+    } else {
+        tableBody.innerHTML = filteredCheaters.map(cheater => `
+            <tr class="stv-table-row" data-id="${cheater._id}">
+                <td class="p-3">
+                    <span class="stv-player-name ${cheater.detectionCount > 1 ? 'clickable' : ''}" ${cheater.detectionCount > 1 ? `onclick="togglePlayerHistory(this.closest('tr'))"` : ''}>
+                        ${cheater.playerName}
+                        ${cheater.detectionCount > 1 ? `<i class="fas fa-chevron-down ml-2 history-icon"></i>` : ''}
+                    </span>
                 </td>
-            </tr>` : ''
-        }
-    `).join('');
-}
-
-
-function showCreateTicketModal() {
-    const num1 = Math.floor(Math.random() * 10) + 1;
-    const num2 = Math.floor(Math.random() * 10) + 1;
-    const answer = num1 + num2;
-
-    const spamCheckHtml = `
-        <label for="spamAnswer" class="stv-form-label">Anti-Spam Kontrolü: ${num1} + ${num2} = ? <span class="text-red-500">*</span></label>
-        <input type="number" id="spamAnswer" class="stv-form-input" required placeholder="Cevabınız">
-        <input type="hidden" id="spamCorrectAnswer" value="${answer}">
-    `;
-    const spamContainer = document.getElementById('spamCheckContainer');
-    if (spamContainer) spamContainer.innerHTML = spamCheckHtml;
-
-    document.getElementById('createTicketModal').style.display = 'flex';
-}
-
-function closeCreateTicketModal() {
-    document.getElementById('createTicketModal').style.display = 'none';
-    document.getElementById('ticketForm').reset();
-}
-
-function showAcceptTicketModal(ticketId) {
-    document.getElementById('acceptingTicketId').value = ticketId;
-    document.getElementById('acceptTicketModal').style.display = 'flex';
-}
-
-function closeAcceptTicketModal() {
-    document.getElementById('acceptTicketModal').style.display = 'none';
-    document.getElementById('acceptTicketForm').reset();
-}
-
-async function handleCreateTicket(e) {
-    e.preventDefault();
-    
-    const userAnswer = parseInt(document.getElementById('spamAnswer').value);
-    const correctAnswer = parseInt(document.getElementById('spamCorrectAnswer').value);
-    
-    if (userAnswer !== correctAnswer) {
-        showErrorToast('Anti-Spam kontrolü hatalı! Lütfen doğru hesaplayın.');
-        return;
+                <td class="p-3"><code>${cheater.steamId}</code></td>
+                <td class="p-3">${cheater.steamProfile ? `<a href="${cheater.steamProfile}" target="_blank" class="text-blue-400 hover:underline">Profil</a>` : 'Yok'}</td>
+                <td class="p-3">${cheater.serverName}</td>
+                <td class="p-3"><span class="stv-detection-count">${cheater.detectionCount}</span></td>
+                <td class="p-3">${(cheater.cheatTypes || []).map(type => `<span class="stv-cheat-type">${type}</span>`).join('')}</td>
+                <td class="p-3">${(cheater.fungunReport || '').split(',').map(link => link.trim()).filter(Boolean).map(link => `<a href="${link}" target="_blank" class="text-red-400 hover:underline block">Rapor</a>`).join('') || 'Yok'}</td>
+                ${isLoggedIn ? `
+                    <td class="p-3">
+                        <div class="stv-action-buttons">
+                            <button onclick="showEditModal('${cheater._id}')" class="stv-action-btn stv-edit-btn" title="Ana Kaydı Düzenle"><i class="fas fa-edit"></i></button>
+                            <button onclick="deleteCheater('${cheater._id}')" class="stv-action-btn stv-delete-btn" title="Sil"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </td>
+                ` : ''}
+            </tr>
+        `).join('');
     }
-    
-    const ticketData = {
-        clanName: document.getElementById('ticketClanName').value,
-        contactInfo: document.getElementById('ticketContactInfo').value,
-        schedule: document.getElementById('ticketSchedule').value,
-        mapPreference: document.getElementById('ticketMapPreference').value, 
-        notes: document.getElementById('ticketNotes').value
-    };
-
-    const submitBtn = document.getElementById('ticketSubmitBtn');
-    if(submitBtn) submitBtn.disabled = true;
-
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/tickets`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(ticketData)
-        });
-
-        const result = await response.json();
-        
-        if (response.ok) {
-            showSuccessToast('Maç bileti başarıyla açıldı! Liste anında güncellenecek.');
-            closeCreateTicketModal();
-        } else if (response.status === 429) {
-            showErrorToast(`Hata: ${result.message}`);
-        } else {
-            showErrorToast(`Bilet oluşturma başarısız: ${result.message || 'Bilinmeyen Hata'}`);
-        }
-    } catch (error) {
-        showErrorToast('Sunucuya ulaşılamadı veya bir hata oluştu.');
-        console.error('Bilet oluşturma hatası:', error);
-    } finally {
-        if(submitBtn) submitBtn.disabled = false;
-    }
-}
-
-async function handleAcceptTicket(e) {
-    e.preventDefault();
-    
-    const ticketId = document.getElementById('acceptingTicketId').value;
-    const challengerData = {
-        clanName: document.getElementById('acceptClanName').value,
-        contactInfo: document.getElementById('acceptContactInfo').value
-    };
-    
-    const submitBtn = document.getElementById('acceptSubmitBtn');
-    if(submitBtn) submitBtn.disabled = true;
-
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/tickets/${ticketId}/accept`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(challengerData)
-        });
-
-        const result = await response.json();
-        
-        if (response.ok) {
-            showSuccessToast('Maç bileti başarıyla kabul edildi! İlan sahibiyle iletişime geçin.');
-            closeAcceptTicketModal();
-        } else {
-            showErrorToast(`Kabul etme başarısız: ${result.message || 'Bilinmeyen Hata'}`);
-        }
-    } catch (error) {
-        showErrorToast('Sunucuya ulaşılamadı veya bir hata oluştu.');
-        console.error('Bilet kabul etme hatası:', error);
-    } finally {
-        if(submitBtn) submitBtn.disabled = false;
-    }
+    document.getElementById('cheaterCountDisplay').textContent = cheaters.length;
 }
