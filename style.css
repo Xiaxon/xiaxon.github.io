@@ -286,7 +286,7 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #fff
 }
 
 
-/* --- Bilet Sistemi Stilleri (Minimal) --- */
+/* --- Bilet Sistemi Stilleri (Minimal, orijinal görünüme uyumlu) --- */
 
 .stv-ticket-card {
     background: rgba(40, 40, 40, 0.95);
@@ -296,7 +296,7 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #fff
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
-/* Modern Buton Stilleri (Orijinal temaya uygun renkler) */
+/* Modern Buton Stilleri */
 .stv-modern-btn {
     padding: 10px 18px;
     border-radius: 6px;
@@ -321,7 +321,7 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #fff
 .stv-modern-btn-secondary:hover {
     background-color: #6b7280;
 }
-/* YENİ BUTON İÇİN ESKİ TEMAYA YAKIN SARI/KIRMIZI TON */
+/* Yeni Maç İste butonu için orijinal temaya yakın renk */
 .stv-modern-btn-accent {
     background-color: #d97706; /* Turuncu/Sarı */
     color: black;
@@ -345,7 +345,7 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #fff
 }
 
 
-/* Responsive Düzeltmeler (Orijinal yapıyı koruyarak) */
+/* Responsive Düzeltmeler */
 
 @media (max-width: 1024px) {
     .main-content-grid {
