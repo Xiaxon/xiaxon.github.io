@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>STV 5V5 Maç Oluşturma</title>
+    <title>STV 5V5 Maç Oluştur</title>
     <meta name="description" content="5v5 maç bulma ve organize etme platformu.">
     <link rel="icon" href="favicon.png" type="image/png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -197,15 +197,13 @@
     </div>
 
     <div class="stv-gradient-bg">
-        <div class="container mx-auto p-4 relative z-10">
+        <div class="container mx-auto p-4">
             
             <header class="main-header">
-                <div class="flex items-center">
-                    <h1 class="main-title flex items-center">
-                        <img src="ticcket.png" alt="5V5 İkonu" class="h-8 w-8 mr-2 inline-block"> 
-                        STV 5V5 Maç Oluştur
-                    </h1>
-                </div>
+                <h1 class="main-title flex items-center">
+                    <img src="ticcket.png" alt="5V5 İkonu" class="h-8 w-8 mr-2 inline-block"> 
+                    STV 5V5 Maç Oluştur
+                </h1>
                 <div class="main-menu">
                     <button id="openTicketModalBtn" class="stv-modern-btn stv-modern-btn-accent mr-3">
                         <i class="fas fa-bullhorn mr-2"></i>Yeni Maç İste
@@ -265,14 +263,9 @@
             </div>
 
             <footer class="main-footer">
-                <p class="flex items-center justify-center">
-                    <span class="text-red-400 font-bold mr-3"><i class="fas fa-fire-extinguisher mr-1"></i>HİLEYLE MÜCADELE:</span> 
-                    <span id="cheaterCountDisplay">0</span> hileci listeleniyor.
-                </p>
-                <p>
-                    <span class="mr-4">Son Güncelleme: <span id="lastUpdateTime">-</span></span>
-                    <span>Aktif Kullanıcı: <span id="userCountDisplay">-</span></span>
-                </p>
+                <p>STV HİLEYLE MÜCADELE - <span id="cheaterCountDisplay">0</span> hileci listeleniyor.</p>
+                <p>Son Güncelleme: <span id="lastUpdateTime">-</span></p>
+                <p>Aktif Kullanıcı: <span id="userCountDisplay">-</span></p>
                 <p>Proje STV | Geliştirme: XIAXON, LJUPKA, SELAMKIMSEN</p>
             </footer>
 
