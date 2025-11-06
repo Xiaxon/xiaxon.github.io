@@ -11,71 +11,50 @@
 </head>
 <body>
     
-    <div id="acceptTicketModal" class="stv-modal" style="display: none;">
-        <div class="stv-modal-content max-w-sm">
-            <h2 class="text-2xl font-bold text-yellow-400 mb-5"><i class="fas fa-handshake mr-2"></i>Maç Bileti Kabul Et</h2>
-            <p class="text-gray-400 mb-4">Lütfen iletişim bilgilerinizi girin, böylece ilanı açan klan sizinle irtibata geçebilir.</p>
-            <form id="acceptTicketForm" class="space-y-4">
-                <input type="hidden" id="acceptingTicketId">
-                <div>
-                    <label for="acceptClanName" class="stv-form-label">Klan Adınız <span class="text-red-500">*</span></label>
-                    <input type="text" id="acceptClanName" class="stv-form-input" required placeholder="Örn: B Klanı">
+    <div id="createTicketModal" class="stv-modal" style="display: none;">
+        <div class="stv-modal-content max-w-lg">
+            <h2 class="text-3xl font-bold text-green-400 mb-6"><i class="fas fa-bullhorn mr-3"></i>Yeni Maç İlanı Aç</h2>
+            <form id="ticketForm">
+                <div class="stv-admin-form-grid">
+                    <div class="stv-form-group"><label class="stv-form-label">Klan Adı *</label><input type="text" id="ticketClanName" class="stv-input-form" required /></div>
+                    <div class="stv-form-group"><label class="stv-form-label">İletişim Bilgisi (Discord/Steam) *</label><input type="text" id="ticketContactInfo" class="stv-input-form" required /></div>
+                    <div class="stv-form-group"><label class="stv-form-label">Maç Tarih/Saat Tercihi</label><input type="text" id="ticketSchedule" class="stv-input-form" placeholder="Örn: Bu akşam 22:00" /></div>
+                    <div class="stv-form-group"><label class="stv-form-label">Harita Tercihi (Virgülle Ayırın)</label><input type="text" id="ticketMapPreference" class="stv-input-form" placeholder="Örn: Inferno, Mirage" /></div>
+                    <div class="stv-form-group" style="grid-column: 1 / -1;"><label class="stv-form-label">Ek Notlar</label><textarea id="ticketNotes" class="stv-input-form"></textarea></div>
+                    <div id="spamCheckContainer" class="stv-form-group" style="grid-column: 1 / -1;">
+                        </div>
                 </div>
-                <div>
-                    <label for="acceptContactInfo" class="stv-form-label">İletişim Bilgileriniz <span class="text-red-500">*</span></label>
-                    <input type="text" id="acceptContactInfo" class="stv-form-input" required placeholder="Discord#1234 veya Steam Linki">
-                </div>
-                <div class="flex justify-end space-x-3 mt-6">
-                    <button type="button" id="acceptCancelBtn" class="stv-secondary-btn">İptal</button>
-                    <button type="submit" id="acceptSubmitBtn" class="stv-primary-btn stv-accept-btn"><i class="fas fa-check mr-2"></i>Kabul Et</button>
+                <div class="flex gap-4 justify-center flex-wrap mt-6">
+                    <button type="submit" id="ticketSubmitBtn" class="stv-btn-primary px-8 py-4 bg-green-600 hover:bg-green-700"><i class="fas fa-paper-plane mr-2"></i>İlanı Yayınla</button>
+                    <button type="button" id="ticketCancelBtn" class="stv-btn-secondary px-8 py-4"><i class="fas fa-times mr-2"></i>İptal</button>
                 </div>
             </form>
         </div>
     </div>
     
-    <div id="createTicketModal" class="stv-modal" style="display: none;">
-        <div class="stv-modal-content max-w-xl">
-            <h2 class="text-2xl font-bold text-green-400 mb-5"><i class="fas fa-ticket-alt mr-2"></i>Yeni 5V5 Maç Bileti Aç</h2>
-            <form id="ticketForm" class="space-y-4">
-                <div>
-                    <label for="ticketClanName" class="stv-form-label">Klan Adınız <span class="text-red-500">*</span></label>
-                    <input type="text" id="ticketClanName" class="stv-form-input" required placeholder="Örn: STV Takımı">
-                </div>
-                <div>
-                    <label for="ticketContactInfo" class="stv-form-label">İletişim Bilgileriniz (Discord/Steam Linki) <span class="text-red-500">*</span></label>
-                    <input type="text" id="ticketContactInfo" class="stv-form-input" required placeholder="Discord#1234 veya Steam Profil Linki">
-                </div>
-                <div>
-                    <label for="ticketSchedule" class="stv-form-label">İstenen Saat/Program</label>
-                    <input type="text" id="ticketSchedule" class="stv-form-input" placeholder="Örn: Hemen/Bu Akşam 21:00">
-                </div>
-                <div>
-                    <label for="ticketMapPreference" class="stv-form-label">Harita Tercihleri (Virgülle Ayırın)</label>
-                    <input type="text" id="ticketMapPreference" class="stv-form-input" placeholder="Örn: Dust2, Inferno, Nuke">
-                </div>
-                <div>
-                    <label for="ticketNotes" class="stv-form-label">Ek Notlar / Kurallar</label>
-                    <textarea id="ticketNotes" class="stv-form-textarea" rows="3" placeholder="Örn: Sadece AWP'siz maçlar"></textarea>
-                </div>
-
-                <div id="spamCheckContainer">
-                     </div>
-
-                <div class="flex justify-end space-x-3 mt-6">
-                    <button type="button" id="ticketCancelBtn" class="stv-secondary-btn">İptal</button>
-                    <button type="submit" id="ticketSubmitBtn" class="stv-primary-btn"><i class="fas fa-ticket-alt mr-2"></i>Bilet Oluştur</button>
+    <div id="acceptTicketModal" class="stv-modal" style="display: none;">
+        <div class="stv-modal-content max-w-md">
+            <h2 class="text-2xl font-bold text-yellow-400 mb-4"><i class="fas fa-handshake mr-3"></i>Maç Bileti Kabul Et</h2>
+            <p class="text-gray-400 mb-6">Lütfen kendi klan adınızı ve iletişim bilgilerinizi girin ki rakibiniz size ulaşabilsin.</p>
+            <form id="acceptTicketForm">
+                <input type="hidden" id="acceptingTicketId">
+                <div class="stv-form-group"><label class="stv-form-label">Klan Adınız *</label><input type="text" id="acceptClanName" class="stv-input-form" required /></div>
+                <div class="stv-form-group"><label class="stv-form-label">İletişim Bilginiz (Discord/Steam) *</label><input type="text" id="acceptContactInfo" class="stv-input-form" required /></div>
+                <div class="flex gap-4 justify-center mt-6">
+                    <button type="submit" id="acceptSubmitBtn" class="stv-btn-primary px-8 py-3 bg-yellow-600 hover:bg-yellow-700"><i class="fas fa-check mr-2"></i>Kabul Et ve Eşleştir</button>
+                    <button type="button" id="acceptCancelBtn" class="stv-btn-secondary px-8 py-3">İptal</button>
                 </div>
             </form>
         </div>
     </div>
     
     <div id="confirmModal" class="stv-modal" style="display: none;">
-        <div class="stv-modal-content max-w-sm">
-            <h3 id="confirmTitle" class="text-xl font-bold mb-3 text-red-400">Onay Gerekiyor</h3>
-            <p id="confirmMessage" class="text-gray-300 mb-5">Emin misiniz?</p>
-            <div class="flex justify-end space-x-3">
-                <button id="confirmNo" class="stv-secondary-btn">Hayır</button>
-                <button id="confirmYes" class="stv-primary-btn stv-delete-btn">Evet, Onayla</button>
+        <div class="stv-modal-content max-w-md">
+            <h2 class="text-2xl font-bold text-red-400 mb-4"><i class="fas fa-exclamation-triangle mr-2"></i>Onay Gerekiyor</h2>
+            <p id="confirmMessage" class="text-gray-300 mb-6"></p>
+            <div class="flex gap-4 justify-center">
+                <button id="confirmYes" class="stv-btn-primary px-8 py-3">Evet</button>
+                <button id="confirmNo" class="stv-btn-secondary px-8 py-3">Hayır</button>
             </div>
         </div>
     </div>
@@ -83,38 +62,38 @@
     <div class="stv-gradient-bg">
         <div class="container mx-auto p-4 relative z-10">
             <header class="main-header">
-                <a href="index.html" class="text-3xl font-extrabold text-red-600 hover:text-red-400 transition duration-300">
+                <a href="index.html" class="text-3xl font-extrabold text-red-600 hover:text-red-400 transition duration-300 absolute left-4 top-20">
                     <i class="fas fa-arrow-left mr-3"></i>Geri Dön
                 </a>
+                
                 <h1 class="text-4xl font-extrabold text-red-400 mt-2">
-                    <i class="fas fa-ticket-alt mr-3"></i>5V5 Maç Biletleri
+                    <img src="ticcket.png" alt="5V5" class="h-8 w-8 inline-block mr-3 transform -translate-y-1"> 5V5 Maç Biletleri
                 </h1>
                 <p class="text-gray-400 mt-1">Maç atmak isteyen klanları burada bulabilir veya ilanınızı açabilirsiniz.</p>
             </header>
 
             <div class="main-content mt-8">
-                <div class="search-container justify-end">
-                    <div class="stv-user-actions">
-                         <button id="openTicketModalBtn" class="stv-action-btn stv-quick-add-btn" title="Yeni Maç Bileti Aç">
-                            <i class="fas fa-plus mr-2"></i>Yeni İlan Aç
-                        </button>
-                    </div>
-                </div>
                 
-                <div id="matchTicketsContainer" class="stv-content-panel">
+                <div class="flex justify-center mb-8">
+                    <button id="openTicketModalBtn" class="stv-btn-primary px-10 py-4 text-xl bg-green-600 hover:bg-green-700">
+                        <i class="fas fa-plus mr-3"></i>Yeni Maç İlanı Aç
+                    </button>
+                </div>
+
+                <div class="stv-content-panel">
                     <div class="stv-table-container">
                         <table class="stv-table w-full text-left">
                             <thead>
                                 <tr>
-                                    <th class="stv-table-header"><i class="fas fa-users mr-2"></i>Klan (İlan Sahibi)</th>
-                                    <th class="stv-table-header"><i class="fas fa-clock mr-2"></i>İstenen Saat/Program</th>
-                                    <th class="stv-table-header"><i class="fas fa-map mr-2"></i>Harita Tercihleri</th>
-                                    <th class="stv-table-header"><i class="fas fa-comment-dots mr-2"></i>Notlar</th>
-                                    <th class="stv-table-header" style="width: 120px;"><i class="fas fa-cogs mr-2"></i>İşlem</th>
+                                    <th class="stv-table-header" data-sort="clanName" style="background: #059669;"><i class="fas fa-users mr-2"></i>Klan Adı / İletişim</th>
+                                    <th class="stv-table-header" data-sort="schedule" style="background: #059669;"><i class="fas fa-clock mr-2"></i>Maç Zamanı</th>
+                                    <th class="stv-table-header" data-sort="mapPreference" style="background: #059669;"><i class="fas fa-map mr-2"></i>Harita Tercihi</th>
+                                    <th class="stv-table-header" style="background: #059669;"><i class="fas fa-info-circle mr-2"></i>Ek Notlar</th>
+                                    <th class="stv-table-header" style="background: #059669;"><i class="fas fa-cogs mr-2"></i>Aksiyon</th>
                                 </tr>
                             </thead>
                             <tbody id="ticketTableBody">
-                                <tr><td colspan="5" class="text-center py-10"><i class="fas fa-spinner fa-spin mr-2"></i>Biletler Yükleniyor...</td></tr>
+                                <tr><td colspan="5" class="text-center py-10"><i class="fas fa-spinner fa-spin mr-2"></i>Maç Biletleri Yükleniyor...</td></tr>
                             </tbody>
                         </table>
                     </div>
