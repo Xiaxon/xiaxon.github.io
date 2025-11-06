@@ -32,111 +32,256 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #fff
     background: radial-gradient(circle at 50% 50%, transparent 0%, rgba(0, 0, 0, 0.6) 100%);
     z-index: 0;
 }
+.container { max-width: 1400px; margin: 0 auto; padding: 20px; position: relative; z-index: 1; }
+::-webkit-scrollbar { width: 12px; }
+::-webkit-scrollbar-track { background: #1a1a1a; }
+::-webkit-scrollbar-thumb { background: #990000; border-radius: 6px; }
+::-webkit-scrollbar-thumb:hover { background: #660000; }
 
-/* Ana Düzen */
-.container {
-    padding: 20px;
+/* Butonlar */
+.stv-btn-primary, .stv-btn-secondary {
+    border: none;
+    border-radius: 10px;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    text-align: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 24px;
+    letter-spacing: 0.3px;
 }
+.stv-btn-primary { 
+    background: linear-gradient(135deg, #990000, #ff4444); 
+    color: white; 
+    box-shadow: 0 5px 15px rgba(153, 0, 0, 0.3); 
+}
+.stv-btn-primary:hover { 
+    background: linear-gradient(135deg, #bb0000, #ff6666); 
+    transform: translateY(-2px);
+    box-shadow: 0 7px 20px rgba(153, 0, 0, 0.4);
+}
+.stv-btn-secondary { 
+    background: linear-gradient(135deg, #333333, #555555); 
+    color: white; 
+}
+.stv-btn-secondary:hover { 
+    background: linear-gradient(135deg, #444444, #666666);
+    transform: translateY(-2px);
+}
+
+/* Form Elemanları */
+.stv-input, .stv-input-admin, .stv-input-form, textarea.stv-input-form {
+    background: rgba(31, 41, 55, 0.95) !important;
+    border: 2px solid #660000 !important;
+    border-radius: 12px !important;
+    color: #ffffff !important;
+    padding: 14px 18px !important;
+    font-size: 14px !important;
+    width: 100%;
+    transition: all 0.3s ease;
+}
+textarea.stv-input-form { min-height: 80px; resize: vertical; }
+.stv-input:focus, .stv-input-admin:focus, .stv-input-form:focus { 
+    border-color: #990000 !important; 
+    box-shadow: 0 0 15px rgba(153, 0, 0, 0.4) !important;
+    transform: translateY(-1px);
+}
+
+/* Modallar */
+.stv-modal { position: fixed; inset: 0; z-index: 1000; background-color: rgba(0, 0, 0, 0.85); display: flex; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+.stv-modal-content { background: linear-gradient(135deg, #1a1a1a, #2d2d2d); padding: 40px; border-radius: 20px; text-align: center; max-width: 90vw; border: 2px solid #990000; max-height: 90vh; overflow-y: auto; }
+.stv-admin-form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; text-align: left; }
+.stv-form-group { display: flex; flex-direction: column; }
+.stv-form-label { font-weight: 700; font-size: 14px; margin-bottom: 8px; }
+.stv-modal-subtitle {
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: #e57373;
+    margin-top: 5px;
+    margin-bottom: 30px;
+}
+
+/* Sabit Butonlar ve Pozisyonlama */
+.stv-social-btn { position: absolute; top: 20px; color: white; padding: 10px 16px; border-radius: 25px; text-decoration: none; font-weight: 600; z-index: 1000; display: flex; align-items: center; gap: 8px; transition: all 0.3s ease; border: none; cursor: pointer; }
+.stv-discord-btn { left: 20px; background: #5865f2; }
+.stv-youtube-btn { position: absolute; top: 20px; right: 200px; background: #ff0000; }
+.stv-admin-info { position: absolute; top: 75px; left: 20px; color: #ffd700; font-weight: 700; z-index: 1000; }
+.admin-actions-container { position: absolute; top: 20px; right: 20px; display: flex; align-items: center; gap: 10px; z-index: 1000; }
+.stv-admin-btn { position: static; background: #4f4f4f; }
+.stv-quick-add-btn { position: static; background: #059669; width: 44px; height: 44px; padding: 0; justify-content: center; border-radius: 50%; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.4); }
+.stv-quick-add-btn:hover { transform: scale(1.1); }
+
+/* Ana Başlık ve Alt Bilgi */
+.stv-gradient-bg { position: relative; }
 .main-header {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
     align-items: center;
-    padding: 10px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    margin-bottom: 20px;
+    text-align: center;
+    margin-bottom: 2.5rem;
+    padding-top: 120px;
+    padding-bottom: 1.5rem;
+    border-bottom: 2px solid #4b0000;
 }
-.main-title {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #ef4444; /* Kırmızı renk */
+.main-header h1 { 
+    text-shadow: 2px 2px 4px rgba(255, 68, 68, 0.3);
+    font-size: 2.5rem;
+    letter-spacing: 1px;
 }
-.main-menu button {
-    margin-left: 10px;
-}
-.main-content-grid {
-    display: grid;
-    grid-template-columns: 3fr 1fr; /* Hileci (3) ve Bilet (1) oranında tutuldu */
-    gap: 20px;
-}
-.section-title {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: #ef4444; 
-    margin-bottom: 10px;
+.main-header p { 
+    max-width: 56rem; 
+    margin-top: 0.75rem;
+    line-height: 1.7;
 }
 .main-footer {
-    display: flex;
-    justify-content: space-between;
-    padding: 15px 0;
-    margin-top: 30px;
-    font-size: 0.9em;
+    text-align: center;
+    margin-top: 2rem;
     color: #9ca3af;
-    border-top: 1px solid rgba(156, 163, 175, 0.2);
-}
-
-/* Panel ve Kutu Stilleri */
-.stv-panel {
-    background: rgba(30, 30, 30, 0.8);
-    border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-}
-.stv-input {
-    background-color: rgba(45, 45, 45, 0.9);
-    border: 1px solid #4b5563;
-    padding: 10px;
-    border-radius: 6px;
-    color: #ffffff;
-    transition: border-color 0.3s;
-}
-.stv-input:focus {
-    border-color: #ef4444;
-    outline: none;
-}
-.stv-label {
-    display: block;
-    font-size: 0.9rem;
-    color: #d1d5db;
-    margin-bottom: 4px;
-    font-weight: 500;
+    font-size: 0.875rem;
 }
 
 /* Tablo Stilleri */
-.stv-table-container {
-    overflow-x: auto;
-    margin-top: 10px;
+.stv-table-container { 
+    background: rgba(15, 15, 15, 0.92); 
+    border-radius: 20px; 
+    overflow-x: auto; 
+    border: 1px solid #660000;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
-.stv-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    font-size: 0.9rem;
+.stv-table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    color: white;
+    table-layout: fixed;
 }
-.stv-table th {
-    background-color: rgba(60, 0, 0, 0.8);
-    color: #fca5a5;
-    padding: 12px 10px;
-    text-align: left;
-    font-weight: 700;
-    border-bottom: 2px solid #ef4444;
-    cursor: pointer;
-    transition: background-color 0.2s;
+.stv-table-header { 
+    background: linear-gradient(135deg, #660000, #990000); 
+    color: white; 
+    padding: 16px 12px;
+    font-weight: 700; 
+    text-align: center; 
+    cursor: pointer; 
+    white-space: nowrap;
+    font-size: 0.9em;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
 }
-.stv-table th:hover {
-    background-color: rgba(80, 0, 0, 0.8);
+.stv-table-header:hover {
+    background: linear-gradient(135deg, #770000, #aa0000);
 }
-.stv-table td {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 12px 10px;
+.stv-table-row { 
+    border-bottom: 1px solid #333333; 
+    transition: all 0.3s ease; 
+}
+.stv-table-row:hover { 
+    background: rgba(153, 0, 0, 0.15); 
+    transform: translateX(3px);
+}
+.stv-table td { 
+    padding: 14px 12px;
     vertical-align: middle;
+    font-size: 0.92em;
+    word-wrap: break-word;
 }
-.stv-table-row:hover {
-    background-color: rgba(255, 255, 255, 0.05);
-}
-.stv-player-name {
+
+/* Sütun genişlikleri */
+.stv-table th:nth-child(1), .stv-table td:nth-child(1) { width: 15%; text-align: center; } /* Oyuncu Adı */
+.stv-table th:nth-child(2), .stv-table td:nth-child(2) { width: 15%; text-align: center; } /* Steam ID */
+.stv-table th:nth-child(3), .stv-table td:nth-child(3) { width: 10%; text-align: center; } /* Steam Profil */
+.stv-table th:nth-child(4), .stv-table td:nth-child(4) { width: 20%; text-align: center; } /* Son Sunucu */
+.stv-table th:nth-child(5), .stv-table td:nth-child(5) { width: 8%; text-align: center; } /* Tespit Sayısı */
+.stv-table th:nth-child(6), .stv-table td:nth-child(6) { width: 12%; text-align: center; } /* Hile Türleri */
+.stv-table th:nth-child(7), .stv-table td:nth-child(7) { width: 12%; text-align: center; } /* Fungun Rapor */
+.stv-table th:nth-child(8), .stv-table td:nth-child(8) { width: 8%; text-align: center; } /* İşlemler */
+
+.stv-player-name.clickable { 
+    color: #60a5fa; 
+    cursor: pointer; 
+    transition: all 0.3s ease; 
+    display: inline-flex; 
+    align-items: center; 
+    gap: 8px;
     font-weight: 600;
-    color: #fef08a; /* Sarı renk vurgusu */
 }
+.stv-player-name.clickable:hover { 
+    color: #93c5fd;
+    transform: translateX(3px);
+}
+.history-icon { 
+    transition: transform 0.3s ease; 
+    font-size: 12px; 
+}
+.history-icon.rotated { transform: rotate(180deg); }
+.stv-detection-count { 
+    background: #660000; 
+    color: white; 
+    padding: 6px 12px; 
+    border-radius: 14px; 
+    font-size: 13px; 
+    font-weight: 700; 
+    display: inline-block;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    letter-spacing: 0.5px;
+}
+.stv-cheat-type { 
+    background: #990000; 
+    color: white; 
+    padding: 6px 10px; 
+    border-radius: 10px; 
+    font-size: 11px; 
+    margin: 3px; 
+    display: inline-block;
+    font-weight: 600;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s ease;
+}
+.stv-cheat-type:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+}
+
+/* Geçmişi Görüntüleme Stilleri */
+.stv-history-row {
+    background-color: rgba(40, 40, 40, 0.5) !important;
+    font-size: 0.9em;
+}
+.stv-history-row:hover {
+    background-color: rgba(153, 0, 0, 0.25) !important;
+}
+.stv-history-row td {
+    border-color: #444;
+}
+.stv-history-row td:first-child {
+    padding-left: 35px !important;
+    position: relative;
+}
+.stv-history-row td:first-child::before {
+    content: '\f178';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #ff4444;
+}
+.stv-history-date-small {
+    display: block;
+    font-size: 0.8em;
+    color: #9ca3af;
+    margin-top: 4px;
+}
+
+/* Modern Tablo İçerik Stilleri */
+.stv-table td:nth-child(1) {
+    font-weight: 700;
+    font-size: 0.95em;
+}
+
 .stv-table td:nth-child(2) code {
     background: rgba(40, 40, 40, 0.6);
     padding: 6px 12px;
@@ -149,6 +294,7 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #fff
     display: inline-block;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
+
 .stv-table td:nth-child(3) a {
     background: linear-gradient(135deg, #1e40af, #3b82f6);
     padding: 6px 14px;
@@ -161,228 +307,39 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #fff
     transition: all 0.3s ease;
     box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
 }
+
 .stv-table td:nth-child(3) a:hover {
     background: linear-gradient(135deg, #2563eb, #60a5fa);
     transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.5);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
 }
-.stv-cheat-type {
-    background-color: #dc2626;
+
+.stv-table td:nth-child(4) {
+    font-weight: 500;
+}
+
+.stv-table td:nth-child(7) a {
+    background: #990000;
+    padding: 6px 12px;
+    border-radius: 7px;
     color: white;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 0.75em;
-    margin-right: 4px;
-    display: inline-block;
+    text-decoration: none;
     font-weight: 600;
-}
-.stv-report-link {
-    color: #f87171;
-    text-decoration: underline;
-    font-size: 0.8em;
-}
-.stv-detection-count {
-    font-weight: bold;
-    color: #f97316;
-    font-size: 1.1em;
-}
-
-/* Aksiyon Butonları */
-.stv-action-buttons {
-    display: flex;
-    gap: 8px;
-}
-.stv-action-btn {
-    padding: 6px 10px;
-    border-radius: 4px;
-    font-size: 0.9em;
-    cursor: pointer;
-    border: none;
-    transition: background-color 0.2s;
-}
-.stv-edit-btn {
-    background-color: #2563eb;
-    color: white;
-}
-.stv-edit-btn:hover {
-    background-color: #1e40af;
-}
-.stv-delete-btn {
-    background-color: #ef4444;
-    color: white;
-}
-.stv-delete-btn:hover {
-    background-color: #b91c1c;
-}
-
-/* Modal Stilleri */
-.stv-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.8);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-.stv-modal-content {
-    background-color: #1f2937;
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
-    width: 90%;
-    max-width: 500px;
-    position: relative;
-    border: 2px solid #ef4444;
-}
-.stv-modal-subtitle {
-    color: #9ca3af;
-    font-size: 1.1rem;
-    margin-bottom: 10px;
-}
-
-/* Admin Paneli Hileci Ekleme Formu */
-.stv-history-table {
-    background-color: rgba(30, 30, 30, 0.9);
-    border: 1px solid #4b5563;
-    border-radius: 8px;
-}
-.stv-history-table td {
-    border-bottom: 1px solid rgba(75, 85, 99, 0.5);
     font-size: 0.85em;
+    display: inline-block;
+    margin: 2px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
-/* Toast Bildirimleri */
-.stv-toast {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    padding: 12px 20px;
-    border-radius: 8px;
-    color: white;
-    font-weight: 600;
-    z-index: 2000;
-    display: flex;
-    align-items: center;
-    opacity: 0;
-    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
-    transform: translateX(100%);
-}
-.stv-toast.show {
-    opacity: 1;
-    transform: translateX(0);
-}
-.stv-toast-info {
-    background-color: #3b82f6;
-}
-.stv-toast-success {
-    background-color: #10b981;
-}
-.stv-toast-error {
-    background-color: #ef4444;
+.stv-table td:nth-child(7) a:hover {
+    background: #cc0000;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
 }
 
-
-/* --- Bilet Sistemi Stilleri (Minimal, orijinal görünüme uyumlu) --- */
-
-.stv-ticket-card {
-    background: rgba(40, 40, 40, 0.95);
-    border: 1px solid #4b5563;
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-}
-
-/* Modern Buton Stilleri */
-.stv-modern-btn {
-    padding: 10px 18px;
-    border-radius: 6px;
-    font-weight: 600;
-    font-size: 0.9em;
-    cursor: pointer;
-    transition: background-color 0.2s;
-    border: none;
-    text-transform: uppercase;
-}
-.stv-modern-btn-primary {
-    background-color: #2563eb;
-    color: white;
-}
-.stv-modern-btn-primary:hover {
-    background-color: #1e40af;
-}
-.stv-modern-btn-secondary {
-    background-color: #4b5563;
-    color: #d1d5db;
-}
-.stv-modern-btn-secondary:hover {
-    background-color: #6b7280;
-}
-/* Yeni Maç İste butonu için orijinal temaya yakın renk */
-.stv-modern-btn-accent {
-    background-color: #d97706; /* Turuncu/Sarı */
-    color: black;
-}
-.stv-modern-btn-accent:hover {
-    background-color: #b45309;
-}
-.stv-modern-btn-success {
-    background-color: #10b981;
-    color: white;
-}
-.stv-modern-btn-success:hover {
-    background-color: #059669;
-}
-.stv-modern-btn-danger {
-    background-color: #ef4444;
-    color: white;
-}
-.stv-modern-btn-danger:hover {
-    background-color: #b91c1c;
-}
-
-
-/* Responsive Düzeltmeler */
-
-@media (max-width: 1024px) {
-    .main-content-grid {
-        grid-template-columns: 1fr; /* Tek sütuna düşür */
-    }
-    .main-menu {
-        margin-top: 10px;
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: flex-end;
-    }
-    .main-menu button {
-        margin-top: 5px;
-        margin-left: 5px;
-    }
-    .main-header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-}
-
-@media (max-width: 600px) {
-    .main-title {
-        font-size: 1.5rem;
-    }
-    .stv-table-container {
-        overflow-x: auto;
-    }
-    .stv-table {
-        min-width: 600px; /* Tabloyu kaydırılabilir yap */
-    }
-    .main-footer {
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-    }
-    .main-footer p {
-        margin: 5px 0;
-    }
+/* Smooth Animations */
+* {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
