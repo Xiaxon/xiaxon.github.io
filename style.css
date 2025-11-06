@@ -139,28 +139,32 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #fff
 }
 .stv-table td:nth-child(2) code {
     background: rgba(40, 40, 40, 0.6);
-    padding: 4px 8px;
-    border-radius: 4px;
+    padding: 6px 12px;
+    border-radius: 8px;
     border: 1px solid rgba(102, 0, 0, 0.3);
     font-family: 'Consolas', 'Monaco', monospace;
-    font-size: 0.8em;
+    font-size: 0.88em;
     font-weight: 600;
     letter-spacing: 0.5px;
     display: inline-block;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 .stv-table td:nth-child(3) a {
-    background: #3b82f6;
-    padding: 4px 8px;
-    border-radius: 4px;
+    background: linear-gradient(135deg, #1e40af, #3b82f6);
+    padding: 6px 14px;
+    border-radius: 8px;
     color: white;
     text-decoration: none;
     font-weight: 600;
-    font-size: 0.8em;
+    font-size: 0.88em;
     display: inline-block;
-    transition: background-color 0.2s;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
 }
 .stv-table td:nth-child(3) a:hover {
-    background: #2563eb;
+    background: linear-gradient(135deg, #2563eb, #60a5fa);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.5);
 }
 .stv-cheat-type {
     background-color: #dc2626;
@@ -290,20 +294,16 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #fff
     padding: 15px;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    transition: box-shadow 0.2s ease;
-}
-.stv-ticket-card:hover {
-    box-shadow: 0 6px 12px rgba(255, 68, 68, 0.2);
 }
 
-/* Modern Buton Stilleri */
+/* Modern Buton Stilleri (Orijinal temaya uygun renkler) */
 .stv-modern-btn {
     padding: 10px 18px;
     border-radius: 6px;
     font-weight: 600;
     font-size: 0.9em;
     cursor: pointer;
-    transition: background-color 0.2s, box-shadow 0.2s;
+    transition: background-color 0.2s;
     border: none;
     text-transform: uppercase;
 }
@@ -321,12 +321,13 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #fff
 .stv-modern-btn-secondary:hover {
     background-color: #6b7280;
 }
+/* YENİ BUTON İÇİN ESKİ TEMAYA YAKIN SARI/KIRMIZI TON */
 .stv-modern-btn-accent {
-    background-color: #f59e0b;
+    background-color: #d97706; /* Turuncu/Sarı */
     color: black;
 }
 .stv-modern-btn-accent:hover {
-    background-color: #d97706;
+    background-color: #b45309;
 }
 .stv-modern-btn-success {
     background-color: #10b981;
@@ -344,7 +345,7 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #fff
 }
 
 
-/* Responsive Düzeltmeler */
+/* Responsive Düzeltmeler (Orijinal yapıyı koruyarak) */
 
 @media (max-width: 1024px) {
     .main-content-grid {
