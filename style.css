@@ -343,3 +343,83 @@ textarea.stv-input-form { min-height: 80px; resize: vertical; }
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
+
+/* --- YENİ EKLENEN BİLET BUTON STİLİ (index.html'deki Sabit Buton) --- */
+.stv-ticket-link-btn {
+    background: linear-gradient(135deg, #10b981, #059669); /* Zümrüt Yeşili */
+    border: 1px solid #047857;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(5, 150, 105, 0.3);
+}
+
+.stv-ticket-link-btn:hover {
+    background: linear-gradient(135deg, #059669, #10b981);
+    transform: translateY(-2px);
+    box-shadow: 0 7px 20px rgba(5, 150, 105, 0.4);
+}
+
+/* tickets.html BAŞLIK GÖRSELİ İÇİN STİL */
+.main-header h1 img {
+    height: 2rem; /* h-8 */
+    width: 2rem; /* w-8 */
+    vertical-align: middle;
+}
+
+/* Bilet Sistemi Tablo Stilleri */
+.stv-content-panel {
+    background: rgba(15, 15, 15, 0.92); 
+    border-radius: 20px; 
+    overflow-x: auto; 
+    border: 1px solid #059669; /* Bilet için yeşil tema */
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    margin-top: 3rem;
+}
+
+.stv-tag {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-right: 5px;
+}
+.stv-map-tag {
+    background-color: #3f6212; /* Dark green */
+    color: #a3e635; /* Lime green */
+    border: 1px solid #84cc16;
+}
+
+.stv-accept-btn {
+    background: linear-gradient(135deg, #059669, #10b981);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: none;
+}
+.stv-accept-btn:hover {
+    background: linear-gradient(135deg, #047857, #065f46);
+    transform: translateY(-1px);
+}
+
+.stv-status-badge {
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.85em;
+}
+.stv-status-matched {
+    background-color: #b45309; /* Amber */
+    color: #fff;
+}
+.stv-matched-info {
+    background-color: rgba(40, 40, 40, 0.8) !important;
+    border-top: 3px solid #b45309 !important;
+}
+
+.stv-ticket-row {
+    border-left: 5px solid #059669;
+}
