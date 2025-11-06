@@ -1,6 +1,6 @@
 // --- Global Değişkenler ---
 let cheaters = [];
-let tickets = []; // Maç Biletlerini tutacak
+let tickets = []; 
 let authToken = sessionStorage.getItem('stvAuthToken') || null;
 let sortColumn = 'createdAt';
 let sortDirection = 'desc';
@@ -8,7 +8,7 @@ let socket = null;
 let editingCheater = null;
 let editingHistory = null;
 let confirmCallback = null;
-let isTicketPage = false; // Hangi sayfada olduğumuzu kontrol eder
+let isTicketPage = false; 
 
 const WS_URL = 'wss://stv-backend.onrender.com';
 const API_BASE_URL = 'https://stv-backend.onrender.com';
@@ -21,17 +21,18 @@ document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
     connectWebSocket();
     
+    // YENİ: Başlatma mantığı sayfa tipine göre ayrıldı
     if (!isTicketPage) {
         showWelcomeModal();
         if (authToken) {
             updateAdminUI();
         }
     }
+    // tickets.html'de sadece footer'ı güncellemesi yeterli (user count için)
 });
 
-// --- Yardımcı Fonksiyonlar ---
-
-// Güvenlik: XSS Koruma Fonksiyonu
+// --- Yardımcı Fonksiyonlar (ShowToast, ShowConfirmModal vb. buraya taşınır.) ---
+// ... (Bu kısım aynı kalmıştır, uzun olduğu için atlanmıştır.)
 function sanitize(str) {
     if (!str) return '';
     if (typeof str !== 'string') return str;
@@ -42,9 +43,6 @@ function sanitize(str) {
               .replace(/'/g, '&#039;');
 }
 
-// ... (Mevcut showToast, closeToast, showConfirmModal, closeConfirmModal, handleConfirmYes, closeWelcomeModal, updateFooter, sortByColumn gibi fonksiyonlar buraya taşınır.)
-
-// Toast Bildirim Fonksiyonları
 function showToast(message, type = 'success') {
     const toastContainer = document.getElementById('toastContainer');
     if (!toastContainer) return;
@@ -71,16 +69,21 @@ function showErrorToast(message) {
     showToast(message, 'error');
 }
 
-// Confirm Modal Fonksiyonları
 function showConfirmModal(title, message, callback) {
+    const confirmModal = document.getElementById('confirmModal');
+    if (!confirmModal) return; // Eğer modal yoksa hata vermemek için kontrol
+
     document.getElementById('confirmTitle').textContent = title;
     document.getElementById('confirmMessage').textContent = message;
     confirmCallback = callback;
-    document.getElementById('confirmModal').style.display = 'flex';
+    confirmModal.style.display = 'flex';
 }
 
 function closeConfirmModal() {
-    document.getElementById('confirmModal').style.display = 'none';
+    const confirmModal = document.getElementById('confirmModal');
+    if (confirmModal) {
+        confirmModal.style.display = 'none';
+    }
     confirmCallback = null;
 }
 
@@ -91,7 +94,6 @@ function handleConfirmYes() {
     closeConfirmModal();
 }
 
-// Welcome Modal
 function showWelcomeModal() {
     if (document.getElementById('welcomeModal')) {
         document.getElementById('welcomeModal').style.display = 'flex';
@@ -104,7 +106,6 @@ function closeWelcomeModal() {
     }
 }
 
-// Footer Güncelleme
 function updateFooter(count) {
     const cheaterCountDisplay = document.getElementById('cheaterCountDisplay');
     const lastUpdateTime = document.getElementById('lastUpdateTime');
@@ -113,7 +114,6 @@ function updateFooter(count) {
     if (lastUpdateTime) lastUpdateTime.textContent = new Date().toLocaleTimeString();
 }
 
-// Sıralama
 function sortByColumn(a, b) {
     const aVal = a[sortColumn] || '';
     const bVal = b[sortColumn] || '';
@@ -136,27 +136,28 @@ function setupEventListeners() {
     if (confirmYes) confirmYes.addEventListener('click', handleConfirmYes);
     if (confirmNo) confirmNo.addEventListener('click', closeConfirmModal);
     
-    // YENİ: Bilet Sayfasına Özel Dinleyiciler
+    // Bilet Sayfasına Özel Dinleyiciler
     if (isTicketPage) {
-        document.getElementById('openTicketModalBtn').addEventListener('click', showCreateTicketModal);
-        document.getElementById('ticketCancelBtn').addEventListener('click', closeCreateTicketModal);
-        document.getElementById('ticketForm').addEventListener('submit', handleCreateTicket);
+        document.getElementById('openTicketModalBtn')?.addEventListener('click', showCreateTicketModal);
+        document.getElementById('ticketCancelBtn')?.addEventListener('click', closeCreateTicketModal);
+        document.getElementById('ticketForm')?.addEventListener('submit', handleCreateTicket);
         
-        document.getElementById('acceptCancelBtn').addEventListener('click', closeAcceptTicketModal);
-        document.getElementById('acceptTicketForm').addEventListener('submit', handleAcceptTicket);
+        document.getElementById('acceptCancelBtn')?.addEventListener('click', closeAcceptTicketModal);
+        document.getElementById('acceptTicketForm')?.addEventListener('submit', handleAcceptTicket);
     } 
-    // Hileci Sayfasına Özel Dinleyiciler
+    // Hileci Sayfasına Özel Dinleyiciler (index.html)
     else {
-        document.getElementById('closeModalBtn').addEventListener('click', closeWelcomeModal);
-        document.getElementById('adminBtn').addEventListener('click', toggleAdminPanel);
-        document.getElementById('quickAddBtn').addEventListener('click', showAdminPanel);
-        document.getElementById('adminLoginBtn').addEventListener('click', handleAdminLogin);
-        document.getElementById('adminCancelBtn').addEventListener('click', closeAdminLoginModal);
-        document.getElementById('adminCloseBtn').addEventListener('click', closeAdminPanel);
-        document.getElementById('editCancelBtn').addEventListener('click', closeEditModal);
-        document.getElementById('cheaterForm').addEventListener('submit', handleAddCheater);
-        document.getElementById('editForm').addEventListener('submit', handleEditSave);
-        document.getElementById('searchInput').addEventListener('input', handleSearch);
+        // !!! ESKİ HALİNE GETİRİLDİ !!!
+        document.getElementById('closeModalBtn')?.addEventListener('click', closeWelcomeModal);
+        document.getElementById('adminBtn')?.addEventListener('click', toggleAdminPanel);
+        document.getElementById('quickAddBtn')?.addEventListener('click', showAdminPanel);
+        document.getElementById('adminLoginBtn')?.addEventListener('click', handleAdminLogin);
+        document.getElementById('adminCancelBtn')?.addEventListener('click', closeAdminLoginModal);
+        document.getElementById('adminCloseBtn')?.addEventListener('click', closeAdminPanel);
+        document.getElementById('editCancelBtn')?.addEventListener('click', closeEditModal);
+        document.getElementById('cheaterForm')?.addEventListener('submit', handleAddCheater);
+        document.getElementById('editForm')?.addEventListener('submit', handleEditSave);
+        document.getElementById('searchInput')?.addEventListener('input', handleSearch);
         document.querySelectorAll('.stv-table-header[data-sort]').forEach(header => {
             header.addEventListener('click', handleSort);
         });
@@ -223,7 +224,11 @@ function connectWebSocket() {
                     break;
                     
                 case 'USER_COUNT_UPDATE':
-                    document.getElementById('userCountDisplay').textContent = payload.data.count;
+                    // Her iki sayfada da göster
+                    const userCountDisplay = document.getElementById('userCountDisplay');
+                    if (userCountDisplay) {
+                         userCountDisplay.textContent = payload.data.count;
+                    }
                     break;
                 case 'ERROR_OCCURRED':
                     showErrorToast(`Sunucu Hatası: ${payload.data.message}`);
@@ -250,6 +255,7 @@ function connectWebSocket() {
 // --- HİLECİ LİSTESİ MANTIĞI (Sadece index.html) ---
 
 function handleCheaterUpdate(type, data) {
+    // ... (Mevcut handleCheaterUpdate mantığı) ...
     switch (type) {
         case 'CHEATER_ADDED':
             cheaters.push(data);
@@ -271,13 +277,13 @@ function handleCheaterUpdate(type, data) {
 }
 
 function renderCheaters(cheaterList) {
+    // ... (Mevcut renderCheaters mantığı) ...
     const tableBody = document.getElementById('cheaterTableBody');
-    if (!tableBody) return; // Sadece hileci sayfasında çalışır
+    if (!tableBody) return; 
 
     const isLoggedIn = !!authToken;
     const filteredList = filterAndSort(cheaterList);
 
-    // Yönetici aksiyon başlığını göster/gizle
     const actionsHeader = document.getElementById('actionsHeader');
     if (actionsHeader) actionsHeader.style.display = isLoggedIn ? 'table-cell' : 'none';
 
@@ -311,7 +317,6 @@ function renderCheaters(cheaterList) {
     `).join('');
 }
 
-// ... (Diğer Hileci Admin ve Arama Fonksiyonları buraya taşınır.)
 
 function handleSort(e) {
     const newSortColumn = e.currentTarget.getAttribute('data-sort');
@@ -337,7 +342,10 @@ function handleSearch(e) {
 }
 
 function filterAndSort(list) {
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const searchInput = document.getElementById('searchInput');
+    if (!searchInput) return list;
+    
+    const searchTerm = searchInput.value.toLowerCase();
     
     const filteredList = list.filter(cheater => 
         cheater.playerName.toLowerCase().includes(searchTerm) ||
@@ -348,7 +356,7 @@ function filterAndSort(list) {
     return filteredList;
 }
 
-// Admin Panel Fonksiyonları
+// Admin Panel Fonksiyonları (Bu kısım index.html'e özeldir ve bozulmamıştır.)
 function updateAdminUI() {
     const isAdmin = !!authToken;
     const adminBtn = document.getElementById('adminBtn');
@@ -368,7 +376,6 @@ function updateAdminUI() {
         closeAdminPanel();
     }
     
-    // Listeyi yeniden çiz (aksiyon butonlarını göstermek/gizlemek için)
     renderCheaters(cheaters);
 }
 
@@ -477,7 +484,6 @@ function showEditModal(cheaterId) {
     editingCheater = cheaters.find(c => c._id === cheaterId);
     if (!editingCheater) return;
 
-    // Ana Kayıt Alanlarını Doldur
     document.getElementById('editCheaterId').value = editingCheater._id;
     document.getElementById('editPlayerName').value = editingCheater.playerName;
     document.getElementById('editSteamId').value = editingCheater.steamId;
@@ -486,7 +492,6 @@ function showEditModal(cheaterId) {
     document.getElementById('editCheatTypes').value = (editingCheater.cheatTypes || []).join(', ');
     document.getElementById('editFungunReport').value = (editingCheater.fungunReport || []).join(', ');
 
-    // Geçmiş Alanlarını Doldur
     renderHistoryEntries(editingCheater.history);
     
     document.getElementById('editModalTitle').textContent = `Kaydı Düzenle: ${editingCheater.playerName}`;
@@ -546,7 +551,6 @@ function renderHistoryEntries(history) {
 }
 
 
-// Silme İşlemi (WebSocket Üzerinden)
 function deleteCheater(cheaterId) {
     if (!authToken) {
         showErrorToast('Bu işlemi yapmak için yönetici olmalısınız!');
@@ -569,7 +573,7 @@ function deleteCheater(cheaterId) {
 }
 
 
-// --- YENİ: 5V5 MAÇ BİLET MANTIĞI (tickets.html) ---
+// --- 5V5 MAÇ BİLET MANTIĞI (tickets.html) ---
 
 function renderTickets(ticketList) {
     const tableBody = document.getElementById('ticketTableBody');
@@ -619,9 +623,8 @@ function renderTickets(ticketList) {
 }
 
 
-// --- Bilet Modal İşlemleri ---
+// --- Bilet Modal ve API İşlemleri (Bu kısım tickets.html'e özeldir ve bozulmamıştır.)
 function showCreateTicketModal() {
-    // Anti-Spam (Basit Matematik Kontrolü)
     const num1 = Math.floor(Math.random() * 10) + 1;
     const num2 = Math.floor(Math.random() * 10) + 1;
     const answer = num1 + num2;
@@ -631,7 +634,8 @@ function showCreateTicketModal() {
         <input type="number" id="spamAnswer" class="stv-form-input" required placeholder="Cevabınız">
         <input type="hidden" id="spamCorrectAnswer" value="${answer}">
     `;
-    document.getElementById('spamCheckContainer').innerHTML = spamCheckHtml;
+    const spamContainer = document.getElementById('spamCheckContainer');
+    if (spamContainer) spamContainer.innerHTML = spamCheckHtml;
 
     document.getElementById('createTicketModal').style.display = 'flex';
 }
@@ -651,11 +655,9 @@ function closeAcceptTicketModal() {
     document.getElementById('acceptTicketForm').reset();
 }
 
-// --- Bilet Oluşturma (POST /api/tickets) ---
 async function handleCreateTicket(e) {
     e.preventDefault();
     
-    // Anti-Spam Kontrolü
     const userAnswer = parseInt(document.getElementById('spamAnswer').value);
     const correctAnswer = parseInt(document.getElementById('spamCorrectAnswer').value);
     
@@ -668,7 +670,7 @@ async function handleCreateTicket(e) {
         clanName: document.getElementById('ticketClanName').value,
         contactInfo: document.getElementById('ticketContactInfo').value,
         schedule: document.getElementById('ticketSchedule').value,
-        mapPreference: document.getElementById('ticketMapPreference').value, // Backend array'e çevirecek
+        mapPreference: document.getElementById('ticketMapPreference').value, 
         notes: document.getElementById('ticketNotes').value
     };
 
@@ -700,7 +702,6 @@ async function handleCreateTicket(e) {
     }
 }
 
-// --- Bilet Kabul Etme (PUT /api/tickets/:id/accept) ---
 async function handleAcceptTicket(e) {
     e.preventDefault();
     
