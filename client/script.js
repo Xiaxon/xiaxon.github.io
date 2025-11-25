@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadData();
     renderBracket();
     renderAdminInputs();
+    attachInputListeners();
     checkAuth(); // Check if already logged in
     lucide.createIcons();
     
@@ -189,31 +190,55 @@ function renderAdminInputs() {
     r1Container.innerHTML = tournamentData.r1.map((val, i) => `
         <div class="input-row">
             <span class="input-num">${String(i+1).padStart(2, '0')}</span>
-            <input type="text" value="${val === 'TBD' ? '' : val}" placeholder="Takım Adı">
+            <input type="text" value="${val === 'TBD' ? '' : val}" placeholder="Takım Adı" data-section="r1" data-index="${i}">
         </div>
     `).join('');
 
     // QF Inputs
     const qfContainer = document.getElementById('admin-qf');
     qfContainer.innerHTML = tournamentData.qf.map((val, i) => `
-        <input type="text" value="${val === 'TBD' ? '' : val}" placeholder="ÇF ${i+1}">
+        <input type="text" value="${val === 'TBD' ? '' : val}" placeholder="ÇF ${i+1}" data-section="qf" data-index="${i}">
     `).join('');
 
     // SF Inputs
     const sfContainer = document.getElementById('admin-sf');
     sfContainer.innerHTML = tournamentData.sf.map((val, i) => `
-        <input type="text" value="${val === 'TBD' ? '' : val}" placeholder="YF ${i+1}">
+        <input type="text" value="${val === 'TBD' ? '' : val}" placeholder="YF ${i+1}" data-section="sf" data-index="${i}">
     `).join('');
 
     // F Inputs
     const fContainer = document.getElementById('admin-f');
     fContainer.innerHTML = tournamentData.f.map((val, i) => `
-        <input type="text" value="${val === 'TBD' ? '' : val}" placeholder="Finalist ${i+1}">
+        <input type="text" value="${val === 'TBD' ? '' : val}" placeholder="Finalist ${i+1}" data-section="f" data-index="${i}">
     `).join('');
 
     // Champ Input
     const champInput = document.getElementById('input-champ');
     champInput.value = tournamentData.champ === 'TBD' ? '' : tournamentData.champ;
+    champInput.setAttribute('data-section', 'champ');
+}
+
+function attachInputListeners() {
+    // Listen for all input changes
+    document.addEventListener('input', (e) => {
+        if (e.target.tagName === 'INPUT' && e.target.dataset.section) {
+            const section = e.target.dataset.section;
+            const index = e.target.dataset.index;
+            const value = e.target.value || "TBD";
+
+            if (section === 'champ') {
+                tournamentData.champ = value;
+            } else {
+                tournamentData[section][parseInt(index)] = value;
+            }
+
+            // Update localStorage
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(tournamentData));
+
+            // Update bracket in real-time
+            renderBracket();
+        }
+    });
 }
 
 function drawLines() {
