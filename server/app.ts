@@ -1,6 +1,14 @@
 import { type Server } from "node:http";
 
 import express, { type Express, type Request, Response, NextFunction } from "express";
+
+declare global {
+  namespace Express {
+    interface Request {
+      skipVite?: boolean;
+    }
+  }
+}
 import { registerRoutes } from "./routes";
 
 export function log(message: string, source = "express") {
@@ -27,6 +35,15 @@ app.use(express.json({
   }
 }));
 app.use(express.urlencoded({ extended: false }));
+
+// Skip Vite middleware for API routes
+app.use((req, res, next) => {
+  if (req.path.startsWith("/api")) {
+    // Mark this request to skip Vite middleware
+    req.skipVite = true;
+  }
+  next();
+});
 
 app.use((req, res, next) => {
   const start = Date.now();
