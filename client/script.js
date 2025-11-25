@@ -8,6 +8,10 @@ const INITIAL_DATA = {
 };
 
 const STORAGE_KEY = "cs16_tournament_data";
+const AUTH_KEY = "cs16_admin_auth";
+// SHA-256 Hash of "ravza2025."
+const AUTH_HASH = "6eb38a9a2d9f2b5780a8f3b09b9d9011b692993d1b87041c150f736068a6eb59";
+
 let tournamentData = { ...INITIAL_DATA };
 
 // Initialization
@@ -15,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadData();
     renderBracket();
     renderAdminInputs();
+    checkAuth(); // Check if already logged in
     lucide.createIcons();
     
     // Resize listener for svg lines
@@ -37,6 +42,66 @@ function switchTab(tabId, btn) {
     
     if (tabId === 'bracket') {
         setTimeout(drawLines, 50);
+    }
+}
+
+// Authentication Logic
+async function handleLogin(event) {
+    event.preventDefault();
+    const passwordInput = document.getElementById('admin-password');
+    const errorMsg = document.getElementById('login-error');
+    const password = passwordInput.value;
+
+    // Client-side hashing
+    const msgBuffer = new TextEncoder().encode(password);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+    if (hashHex === AUTH_HASH) {
+        sessionStorage.setItem(AUTH_KEY, 'true');
+        showAdminContent();
+        passwordInput.value = '';
+        errorMsg.textContent = '';
+    } else {
+        errorMsg.textContent = 'Hatalı şifre!';
+        passwordInput.classList.add('shake');
+        setTimeout(() => passwordInput.classList.remove('shake'), 500);
+    }
+}
+
+function checkAuth() {
+    if (sessionStorage.getItem(AUTH_KEY) === 'true') {
+        showAdminContent();
+    } else {
+        showLogin();
+    }
+}
+
+function showAdminContent() {
+    document.getElementById('admin-login').classList.add('hidden');
+    document.getElementById('admin-content').classList.remove('hidden');
+}
+
+function showLogin() {
+    document.getElementById('admin-login').classList.remove('hidden');
+    document.getElementById('admin-content').classList.add('hidden');
+}
+
+function logout() {
+    sessionStorage.removeItem(AUTH_KEY);
+    showLogin();
+}
+
+function togglePasswordVisibility() {
+    const input = document.getElementById('admin-password');
+    const icon = document.querySelector('.toggle-password i');
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        // Re-render eye-off icon if needed, simplified here
+    } else {
+        input.type = 'password';
     }
 }
 

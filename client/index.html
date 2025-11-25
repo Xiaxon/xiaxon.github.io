@@ -87,16 +87,45 @@
 
     <!-- Admin Tab -->
     <div id="admin" class="tab-content">
-        <div class="admin-card">
+        <!-- Login Overlay -->
+        <div id="admin-login" class="login-overlay">
+            <div class="login-card">
+                <div class="login-icon">
+                    <i data-lucide="lock"></i>
+                </div>
+                <h2>Yönetici Girişi</h2>
+                <p>Lütfen devam etmek için şifreyi giriniz.</p>
+                <form onsubmit="handleLogin(event)">
+                    <div class="password-input-wrapper">
+                        <input type="password" id="admin-password" placeholder="Şifre" required>
+                        <button type="button" class="toggle-password" onclick="togglePasswordVisibility()">
+                            <i data-lucide="eye"></i>
+                        </button>
+                    </div>
+                    <p id="login-error" class="error-msg"></p>
+                    <button type="submit" class="login-btn">
+                        Giriş Yap <i data-lucide="arrow-right"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Admin Content (Protected) -->
+        <div id="admin-content" class="admin-card hidden">
             <div class="card-header">
                 <div>
                     <h2>Turnuva Ayarları</h2>
                     <p>Katılımcı takımları ve maç sonuçlarını yönetin</p>
                 </div>
-                <button class="save-btn" onclick="saveData(this)">
-                    <i data-lucide="save"></i>
-                    Değişiklikleri Kaydet
-                </button>
+                <div class="header-actions">
+                    <button class="logout-btn" onclick="logout()">
+                        <i data-lucide="log-out"></i> Çıkış
+                    </button>
+                    <button class="save-btn" onclick="saveData(this)">
+                        <i data-lucide="save"></i>
+                        Değişiklikleri Kaydet
+                    </button>
+                </div>
             </div>
 
             <div class="card-body">
