@@ -1,9 +1,9 @@
 // Data State
 const INITIAL_DATA = {
-    r1: Array(16).fill({ name: "TBD", score: "" }),
-    qf: Array(8).fill({ name: "TBD", score: "" }),
-    sf: Array(4).fill({ name: "TBD", score: "" }),
-    f: Array(2).fill({ name: "TBD", score: "" }),
+    r1: Array(16).fill(null).map(() => ({ name: "TBD", score: "" })),
+    qf: Array(8).fill(null).map(() => ({ name: "TBD", score: "" })),
+    sf: Array(4).fill(null).map(() => ({ name: "TBD", score: "" })),
+    f: Array(2).fill(null).map(() => ({ name: "TBD", score: "" })),
     champ: "TBD"
 };
 
@@ -111,10 +111,20 @@ function loadData() {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
         try {
-            tournamentData = JSON.parse(saved);
+            const parsed = JSON.parse(saved);
+            tournamentData = {
+                r1: parsed.r1 || INITIAL_DATA.r1,
+                qf: parsed.qf || INITIAL_DATA.qf,
+                sf: parsed.sf || INITIAL_DATA.sf,
+                f: parsed.f || INITIAL_DATA.f,
+                champ: parsed.champ || "TBD"
+            };
         } catch (e) {
             console.error("Parse error", e);
+            tournamentData = JSON.parse(JSON.stringify(INITIAL_DATA));
         }
+    } else {
+        tournamentData = JSON.parse(JSON.stringify(INITIAL_DATA));
     }
 }
 
