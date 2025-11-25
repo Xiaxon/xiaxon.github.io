@@ -1,9 +1,9 @@
 // Data State
 const INITIAL_DATA = {
-    r1: Array(16).fill("TBD"),
-    qf: Array(8).fill("TBD"),
-    sf: Array(4).fill("TBD"),
-    f: Array(2).fill("TBD"),
+    r1: Array(16).fill({ name: "TBD", score: "" }),
+    qf: Array(8).fill({ name: "TBD", score: "" }),
+    sf: Array(4).fill({ name: "TBD", score: "" }),
+    f: Array(2).fill({ name: "TBD", score: "" }),
     champ: "TBD"
 };
 
@@ -119,19 +119,6 @@ function loadData() {
 }
 
 function saveData(btn) {
-    // Collect data from inputs
-    const r1Inputs = document.querySelectorAll('#admin-r1 input');
-    const qfInputs = document.querySelectorAll('#admin-qf input');
-    const sfInputs = document.querySelectorAll('#admin-sf input');
-    const fInputs = document.querySelectorAll('#admin-f input');
-    const champInput = document.getElementById('input-champ');
-
-    tournamentData.r1 = Array.from(r1Inputs).map(i => i.value || "TBD");
-    tournamentData.qf = Array.from(qfInputs).map(i => i.value || "TBD");
-    tournamentData.sf = Array.from(sfInputs).map(i => i.value || "TBD");
-    tournamentData.f = Array.from(fInputs).map(i => i.value || "TBD");
-    tournamentData.champ = champInput.value || "TBD";
-
     localStorage.setItem(STORAGE_KEY, JSON.stringify(tournamentData));
     
     // Update UI
@@ -175,11 +162,14 @@ function renderBracket() {
     setTimeout(drawLines, 50);
 }
 
-function createTeamCard(name, id) {
+function createTeamCard(team, id) {
+    const name = typeof team === 'string' ? team : team.name;
+    const score = typeof team === 'string' ? '' : team.score;
     const isFilled = name !== "TBD";
+    const scoreDisplay = score ? ` <span class="team-score">${score}</span>` : '';
     return `
         <div id="${id}" class="team-card ${isFilled ? 'filled' : ''}">
-            ${name}
+            <span class="team-name">${name}</span>${scoreDisplay}
         </div>
     `;
 }
@@ -190,26 +180,36 @@ function renderAdminInputs() {
     r1Container.innerHTML = tournamentData.r1.map((val, i) => `
         <div class="input-row">
             <span class="input-num">${String(i+1).padStart(2, '0')}</span>
-            <input type="text" value="${val === 'TBD' ? '' : val}" placeholder="Takım Adı" data-section="r1" data-index="${i}">
+            <input type="text" value="${val.name === 'TBD' ? '' : val.name}" placeholder="Takım Adı" data-section="r1" data-index="${i}" data-field="name">
+            <input type="text" value="${val.score}" placeholder="Skor" data-section="r1" data-index="${i}" data-field="score" class="score-input">
         </div>
     `).join('');
 
     // QF Inputs
     const qfContainer = document.getElementById('admin-qf');
     qfContainer.innerHTML = tournamentData.qf.map((val, i) => `
-        <input type="text" value="${val === 'TBD' ? '' : val}" placeholder="ÇF ${i+1}" data-section="qf" data-index="${i}">
+        <div class="input-row-qf">
+            <input type="text" value="${val.name === 'TBD' ? '' : val.name}" placeholder="ÇF ${i+1}" data-section="qf" data-index="${i}" data-field="name">
+            <input type="text" value="${val.score}" placeholder="Skor" data-section="qf" data-index="${i}" data-field="score" class="score-input">
+        </div>
     `).join('');
 
     // SF Inputs
     const sfContainer = document.getElementById('admin-sf');
     sfContainer.innerHTML = tournamentData.sf.map((val, i) => `
-        <input type="text" value="${val === 'TBD' ? '' : val}" placeholder="YF ${i+1}" data-section="sf" data-index="${i}">
+        <div class="input-row-sf">
+            <input type="text" value="${val.name === 'TBD' ? '' : val.name}" placeholder="YF ${i+1}" data-section="sf" data-index="${i}" data-field="name">
+            <input type="text" value="${val.score}" placeholder="Skor" data-section="sf" data-index="${i}" data-field="score" class="score-input">
+        </div>
     `).join('');
 
     // F Inputs
     const fContainer = document.getElementById('admin-f');
     fContainer.innerHTML = tournamentData.f.map((val, i) => `
-        <input type="text" value="${val === 'TBD' ? '' : val}" placeholder="Finalist ${i+1}" data-section="f" data-index="${i}">
+        <div class="input-row-f">
+            <input type="text" value="${val.name === 'TBD' ? '' : val.name}" placeholder="Finalist ${i+1}" data-section="f" data-index="${i}" data-field="name">
+            <input type="text" value="${val.score}" placeholder="Skor" data-section="f" data-index="${i}" data-field="score" class="score-input">
+        </div>
     `).join('');
 
     // Champ Input
@@ -223,13 +223,18 @@ function attachInputListeners() {
     document.addEventListener('input', (e) => {
         if (e.target.tagName === 'INPUT' && e.target.dataset.section) {
             const section = e.target.dataset.section;
-            const index = e.target.dataset.index;
-            const value = e.target.value || "TBD";
+            const index = parseInt(e.target.dataset.index);
+            const field = e.target.dataset.field;
+            const value = e.target.value;
 
             if (section === 'champ') {
-                tournamentData.champ = value;
+                tournamentData.champ = value || "TBD";
             } else {
-                tournamentData[section][parseInt(index)] = value;
+                if (field === 'name') {
+                    tournamentData[section][index].name = value || "TBD";
+                } else if (field === 'score') {
+                    tournamentData[section][index].score = value;
+                }
             }
 
             // Update localStorage

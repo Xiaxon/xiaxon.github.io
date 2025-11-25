@@ -219,6 +219,25 @@ main {
     position: relative;
     transition: all 0.3s;
     overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.team-name {
+    flex: 1;
+}
+
+.team-score {
+    font-weight: 700;
+    color: #eab308;
+    background: rgba(234, 179, 8, 0.1);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: monospace;
+    min-width: 32px;
+    text-align: center;
 }
 
 .team-card.filled {
@@ -226,6 +245,14 @@ main {
     border-color: rgba(220, 38, 38, 0.3);
     color: white;
     box-shadow: 0 0 10px rgba(220, 38, 38, 0.1);
+}
+
+.team-card.filled .team-name {
+    color: white;
+}
+
+.team-card.filled .team-score {
+    color: #fef08a;
 }
 
 .team-card::before {
@@ -399,7 +426,13 @@ main {
 .input-row {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
+}
+
+.input-row-qf, .input-row-sf, .input-row-f {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .input-num {
@@ -424,6 +457,13 @@ input[type="text"], input[type="password"] {
 input[type="text"]:focus, input[type="password"]:focus {
     background: rgba(220, 38, 38, 0.05);
     border-color: rgba(220, 38, 38, 0.5);
+}
+
+.score-input {
+    width: 70px !important;
+    font-weight: 700;
+    text-align: center;
+    font-family: monospace !important;
 }
 
 .admin-column-wide {
