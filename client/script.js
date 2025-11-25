@@ -1,9 +1,9 @@
 // Data State
 const INITIAL_DATA = {
-    r1: Array(16).fill(null).map(() => ({ name: "TBD", score: "" })),
-    qf: Array(8).fill(null).map(() => ({ name: "TBD", score: "" })),
-    sf: Array(4).fill(null).map(() => ({ name: "TBD", score: "" })),
-    f: Array(2).fill(null).map(() => ({ name: "TBD", score: "" })),
+    r1: Array(16).fill(null).map((_, i) => ({ name: `TBD ${i + 1}`, score: "" })),
+    qf: Array(8).fill(null).map((_, i) => ({ name: `TBD ${i + 1}`, score: "" })),
+    sf: Array(4).fill(null).map((_, i) => ({ name: `TBD ${i + 1}`, score: "" })),
+    f: Array(2).fill(null).map((_, i) => ({ name: `TBD ${i + 1}`, score: "" })),
     champ: "TBD"
 };
 
