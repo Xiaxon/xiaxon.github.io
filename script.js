@@ -1,10 +1,10 @@
 // Data State
 const INITIAL_DATA = {
-    r1: Array(16).fill(null).map(() => ({ name: "TBD", score: "" })),
-    qf: Array(8).fill(null).map(() => ({ name: "TBD", score: "" })),
-    sf: Array(4).fill(null).map(() => ({ name: "TBD", score: "" })),
-    f: Array(2).fill(null).map(() => ({ name: "TBD", score: "" })),
-    champ: "TBD"
+    r1: Array(16).fill(null).map(() => ({ name: "Boş", score: "" })),
+    qf: Array(8).fill(null).map(() => ({ name: "Boş", score: "" })),
+    sf: Array(4).fill(null).map(() => ({ name: "Boş", score: "" })),
+    f: Array(2).fill(null).map(() => ({ name: "Boş", score: "" })),
+    champ: "Boş"
 };
 
 const STORAGE_KEY = "cs16_tournament_data";
