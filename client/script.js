@@ -15,15 +15,14 @@ let tournamentData = JSON.parse(JSON.stringify(INITIAL_DATA));
 
 // Initialization
 document.addEventListener('DOMContentLoaded', async () => {
-    // Load saved data from server API
-    try {
-        const response = await fetch('/api/tournament');
-        if (response.ok) {
-            const data = await response.json();
-            tournamentData = data;
+    // Load from localStorage
+    const saved = localStorage.getItem('tournamentData');
+    if (saved) {
+        try {
+            tournamentData = JSON.parse(saved);
+        } catch (err) {
+            console.log('Failed to load saved data');
         }
-    } catch (err) {
-        console.log('API not available, using defaults');
     }
     
     renderBracket();
@@ -31,23 +30,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     attachInputListeners();
     checkAuth();
     lucide.createIcons();
-    
-    // Poll for updates every 2 seconds
-    setInterval(async () => {
-        try {
-            const response = await fetch('/api/tournament');
-            if (response.ok) {
-                const data = await response.json();
-                if (JSON.stringify(data) !== JSON.stringify(tournamentData)) {
-                    tournamentData = data;
-                    renderBracket();
-                    renderAdminInputs();
-                }
-            }
-        } catch (err) {
-            console.log('Update poll failed');
-        }
-    }, 2000);
     
     // Resize listener for svg lines
     window.addEventListener('resize', () => {
@@ -126,31 +108,25 @@ function togglePasswordVisibility() {
     }
 }
 
-// Save Data
-async function saveData(btn) {
+// Save Data - localStorage
+function saveData(btn) {
     const originalText = btn.innerHTML;
     btn.innerHTML = '<i data-lucide="check"></i> Kaydediliyor...';
     btn.style.background = '#f59e0b';
     lucide.createIcons();
     
     try {
-        const response = await fetch('/api/tournament', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(tournamentData)
-        });
+        localStorage.setItem('tournamentData', JSON.stringify(tournamentData));
         
-        if (response.ok) {
-            btn.innerHTML = '<i data-lucide="check"></i> Kaydedildi';
-            btn.style.background = '#16a34a';
+        btn.innerHTML = '<i data-lucide="check"></i> Kaydedildi';
+        btn.style.background = '#16a34a';
+        lucide.createIcons();
+        
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.style.background = '';
             lucide.createIcons();
-            
-            setTimeout(() => {
-                btn.innerHTML = originalText;
-                btn.style.background = '';
-                lucide.createIcons();
-            }, 2000);
-        }
+        }, 2000);
     } catch (err) {
         console.error('Save failed:', err);
         btn.innerHTML = '<i data-lucide="x"></i> Hata!';
@@ -224,8 +200,6 @@ function renderAdminInputs() {
 }
 
 function attachInputListeners() {
-    let saveTimeout;
-    
     document.addEventListener('input', (e) => {
         if (e.target.tagName === 'INPUT' && e.target.dataset.section) {
             const section = e.target.dataset.section;
@@ -245,15 +219,8 @@ function attachInputListeners() {
 
             renderBracket();
             
-            // Auto-save to API after 1 second of inactivity
-            clearTimeout(saveTimeout);
-            saveTimeout = setTimeout(() => {
-                fetch('/api/tournament', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(tournamentData)
-                }).catch(err => console.log('Auto-save failed:', err));
-            }, 1000);
+            // Auto-save to localStorage
+            localStorage.setItem('tournamentData', JSON.stringify(tournamentData));
         }
     });
 }
