@@ -9,41 +9,19 @@ const INITIAL_DATA = {
 
 const STORAGE_KEY = "cs16_tournament_data";
 const AUTH_KEY = "cs16_admin_auth";
-const API_URL = "/api/tournament";
 // SHA-256 Hash of "ravza2025."
 const AUTH_HASH = "6eb38a9a2d9f2b5780a8f3b09b9d9011b692993d1b87041c150f736068a6eb59";
 
 let tournamentData = { ...INITIAL_DATA };
-let isPolling = false;
-
-// BroadcastChannel for real-time sync between tabs
-let broadcastChannel;
-try {
-    broadcastChannel = new BroadcastChannel('tournament-channel');
-    broadcastChannel.onmessage = (event) => {
-        if (event.data.type === 'UPDATE') {
-            tournamentData = event.data.data;
-            renderBracket();
-            renderAdminInputs();
-            console.log("[BroadcastChannel] Data synced from another tab");
-        }
-    };
-    console.log("[BroadcastChannel] Initialized");
-} catch (e) {
-    console.log("[BroadcastChannel] Not supported in this browser");
-}
 
 // Initialization
-document.addEventListener('DOMContentLoaded', async () => {
-    await loadData();
+document.addEventListener('DOMContentLoaded', () => {
+    loadData();
     renderBracket();
     renderAdminInputs();
     attachInputListeners();
     checkAuth(); // Check if already logged in
     lucide.createIcons();
-    
-    // Start polling for data updates every 5 seconds
-    startPolling();
     
     // Resize listener for svg lines
     window.addEventListener('resize', () => {
@@ -128,94 +106,44 @@ function togglePasswordVisibility() {
 }
 
 // Data Management
-async function loadData() {
-    try {
-        const response = await fetch(API_URL);
-        if (response.ok) {
-            const data = await response.json();
-            tournamentData = data;
-            console.log("[API] Data loaded from server");
-        } else {
-            // Fallback to localStorage
-            const saved = localStorage.getItem(STORAGE_KEY);
-            if (saved) {
-                tournamentData = JSON.parse(saved);
-                console.log("[LocalStorage] Data loaded from localStorage");
-            } else {
-                tournamentData = JSON.parse(JSON.stringify(INITIAL_DATA));
-            }
-        }
-    } catch (e) {
-        console.error("Server unavailable, using localStorage");
-        // Fallback to localStorage when server is down
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved) {
-            try {
-                tournamentData = JSON.parse(saved);
-                console.log("[LocalStorage] Using cached data");
-            } catch (parseErr) {
-                tournamentData = JSON.parse(JSON.stringify(INITIAL_DATA));
-            }
-        } else {
+function loadData() {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+        try {
+            const parsed = JSON.parse(saved);
+            tournamentData = {
+                r1: parsed.r1 || INITIAL_DATA.r1,
+                qf: parsed.qf || INITIAL_DATA.qf,
+                sf: parsed.sf || INITIAL_DATA.sf,
+                f: parsed.f || INITIAL_DATA.f,
+                champ: parsed.champ || "TBD"
+            };
+        } catch (e) {
+            console.error("Parse error", e);
             tournamentData = JSON.parse(JSON.stringify(INITIAL_DATA));
         }
+    } else {
+        tournamentData = JSON.parse(JSON.stringify(INITIAL_DATA));
     }
 }
 
-async function startPolling() {
-    if (isPolling) return;
-    isPolling = true;
+function saveData(btn) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(tournamentData));
     
-    setInterval(async () => {
-        try {
-            const response = await fetch(API_URL);
-            if (response.ok) {
-                const data = await response.json();
-                // Only re-render if data changed
-                if (JSON.stringify(data) !== JSON.stringify(tournamentData)) {
-                    tournamentData = data;
-                    renderBracket();
-                    console.log("[API] Data updated from server");
-                }
-            }
-        } catch (e) {
-            // Server not available - ignore polling errors silently
-        }
-    }, 5000); // Poll every 5 seconds
-}
-
-async function saveData(btn) {
-    try {
-        // Always save to localStorage
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(tournamentData));
-        
-        // Try to sync with server
-        try {
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(tournamentData)
-            });
-            console.log("[API] Data synced to server", response.ok);
-        } catch (syncErr) {
-            // Server sync failed, but local save succeeded
-            console.log("[LocalStorage] Data saved locally (server sync failed)");
-        }
-        
-        // Feedback
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '<i data-lucide="check"></i> Kaydedildi';
-        btn.style.background = '#16a34a';
+    // Update UI
+    renderBracket();
+    
+    // Feedback
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i data-lucide="check"></i> Kaydedildi';
+    btn.style.background = '#16a34a';
+    lucide.createIcons();
+    
+    setTimeout(() => {
+        btn.innerHTML = originalText;
+        btn.style.background = '';
         lucide.createIcons();
-        
-        setTimeout(() => {
-            btn.innerHTML = originalText;
-            btn.style.background = '';
-            lucide.createIcons();
-        }, 2000);
-    } catch (e) {
-        console.error("Save error", e);
-    }
+    }, 2000);
 }
 
 // Rendering
@@ -301,7 +229,7 @@ function renderAdminInputs() {
 
 function attachInputListeners() {
     // Listen for all input changes
-    document.addEventListener('input', async (e) => {
+    document.addEventListener('input', (e) => {
         if (e.target.tagName === 'INPUT' && e.target.dataset.section) {
             const section = e.target.dataset.section;
             const index = parseInt(e.target.dataset.index);
@@ -318,28 +246,11 @@ function attachInputListeners() {
                 }
             }
 
+            // Update localStorage
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(tournamentData));
+
             // Update bracket in real-time
             renderBracket();
-            
-            // Save to localStorage immediately
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(tournamentData));
-            
-            // Broadcast to other tabs
-            if (broadcastChannel) {
-                broadcastChannel.postMessage({
-                    type: 'UPDATE',
-                    data: tournamentData
-                });
-            }
-            
-            // Try to sync with server (non-blocking)
-            fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(tournamentData)
-            }).catch(() => {
-                // Server not available - ignore silently
-            });
         }
     });
 }
