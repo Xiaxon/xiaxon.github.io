@@ -1,21 +1,147 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-    <title>CS 1.6 Masters Tournament</title>
-    <meta name="description" content="Professional CS 1.6 Tournament Bracket System" />
-    <meta property="og:title" content="CS 1.6 Masters Tournament" />
-    <meta property="og:description" content="Professional CS 1.6 Tournament Bracket System" />
-    <meta property="og:type" content="website" />
-    <meta property="og:image" content="/og-image.png" />
-    <link rel="icon" type="image/png" href="/favicon.png" />
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS 1.6 KRALLAR TURNUVASI</title>
+    <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+<header>
+    <div class="header-inner">
+        <div class="logo-area">
+            <div class="logo-icon">
+                <i data-lucide="trophy"></i>
+            </div>
+            <h1>
+                <span class="gradient-text">CS 1.6</span>
+                KRALLAR TURNUVASI
+            </h1>
+        </div>
+        
+        <nav>
+            <button class="nav-btn active" onclick="switchTab('bracket', this)">
+                <i data-lucide="trophy" class="btn-icon"></i>
+                Fikstür
+            </button>
+            <button class="nav-btn" onclick="switchTab('admin', this)">
+                <i data-lucide="settings" class="btn-icon"></i>
+                Yönetim Paneli
+            </button>
+        </nav>
+    </div>
+</header>
+
+<main>
+    <!-- Bracket Tab -->
+    <div id="bracket" class="tab-content active">
+        <div class="bracket-card">
+            <div class="bracket-container">
+                <svg id="bracketSvg"></svg>
+                
+                <div class="bracket-columns">
+                    <!-- Round of 16 -->
+                    <div class="column">
+                        <div class="column-header">Son 16 Turu</div>
+                        <div class="match-list" id="r1-list">
+                            <!-- JS will populate this -->
+                        </div>
+                    </div>
+
+                    <!-- Quarter Finals -->
+                    <div class="column">
+                        <div class="column-header">Çeyrek Final</div>
+                        <div class="match-list" id="qf-list"></div>
+                    </div>
+
+                    <!-- Semi Finals -->
+                    <div class="column">
+                        <div class="column-header">Yarı Final</div>
+                        <div class="match-list" id="sf-list"></div>
+                    </div>
+
+                    <!-- Finals -->
+                    <div class="column">
+                        <div class="column-header">Final</div>
+                        <div class="match-list" id="f-list"></div>
+                    </div>
+
+                    <!-- Champion -->
+                    <div class="column champion-column">
+                        <div class="champion-icon-container">
+                            <i data-lucide="trophy" class="champ-icon"></i>
+                        </div>
+                        <div class="champ-label">ŞAMPİYON</div>
+                        <div class="champion-display" id="champion-display">TBD</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Tab -->
+    <div id="admin" class="tab-content">
+        <div class="admin-card">
+            <div class="card-header">
+                <div>
+                    <h2>Turnuva Ayarları</h2>
+                    <p>Katılımcı takımları ve maç sonuçlarını yönetin</p>
+                </div>
+                <button class="save-btn" onclick="saveData(this)">
+                    <i data-lucide="save"></i>
+                    Değişiklikleri Kaydet
+                </button>
+            </div>
+
+            <div class="card-body">
+                <div class="admin-grid">
+                    <!-- Round of 16 Inputs -->
+                    <div class="admin-column">
+                        <h3 class="section-title"><i data-lucide="users"></i> Son 16 Turu</h3>
+                        <div class="input-group" id="admin-r1"></div>
+                    </div>
+
+                    <div class="admin-column-wide">
+                        <!-- Quarter Finals Inputs -->
+                        <div class="input-section">
+                            <h3 class="section-title"><i data-lucide="users"></i> Çeyrek Final</h3>
+                            <div class="grid-2" id="admin-qf"></div>
+                        </div>
+
+                        <!-- Semi Finals Inputs -->
+                        <div class="input-section">
+                            <h3 class="section-title"><i data-lucide="users"></i> Yarı Final</h3>
+                            <div class="grid-2" id="admin-sf"></div>
+                        </div>
+
+                        <!-- Finals & Champion Inputs -->
+                        <div class="final-section">
+                            <div class="input-section">
+                                <h3 class="section-title finalist-title">Finalistler</h3>
+                                <div class="grid-2" id="admin-f"></div>
+                            </div>
+                            
+                            <div class="champion-input-wrapper">
+                                <h3 class="section-title champion-title"><i data-lucide="trophy"></i> Şampiyon</h3>
+                                <input type="text" id="input-champ" placeholder="Şampiyon Adı" class="champ-input">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script src="script.js"></script>
+<script>
+    lucide.createIcons();
+</script>
+</body>
 </html>
