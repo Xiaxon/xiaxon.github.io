@@ -139,7 +139,7 @@ export default function TournamentPage() {
     <div className="min-h-screen bg-[#0a0a0a] text-white font-sans selection:bg-red-500/30">
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-white/10 bg-[#0a0a0a]/80 backdrop-blur-md">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+        <div className="container mx-auto px-4 h-16 flex items-center justify-center relative">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-gradient-to-br from-red-600 to-red-900 rounded-lg shadow-[0_0_15px_rgba(220,38,38,0.5)]">
               <Trophy className="w-5 h-5 text-white" />
@@ -148,11 +148,11 @@ export default function TournamentPage() {
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-red-700">
                 CS 1.6
               </span>{" "}
-              MASTERS
+              KRALLAR TURNUVASI
             </h1>
           </div>
           
-          <div className="flex gap-2">
+          <div className="flex gap-2 absolute right-4">
             <Button
               variant={activeTab === "bracket" ? "secondary" : "ghost"}
               size="sm"
@@ -163,7 +163,7 @@ export default function TournamentPage() {
               )}
             >
               <Trophy className="w-3 h-3 mr-2" />
-              Bracket
+              Fikstür
             </Button>
             <Button
               variant={activeTab === "admin" ? "secondary" : "ghost"}
@@ -175,7 +175,7 @@ export default function TournamentPage() {
               )}
             >
               <Settings className="w-3 h-3 mr-2" />
-              Admin Panel
+              Yönetim Paneli
             </Button>
           </div>
         </div>
@@ -204,28 +204,28 @@ export default function TournamentPage() {
                 <div className="flex items-center justify-start gap-16 p-12 min-w-max z-10 relative h-full">
                   {/* Round of 16 */}
                   <BracketColumn 
-                    title="Round of 16" 
+                    title="Son 16 Turu" 
                     teams={data.r1} 
                     idPrefix="r1"
                   />
 
                   {/* Quarter Finals */}
                   <BracketColumn 
-                    title="Quarter Finals" 
+                    title="Çeyrek Final" 
                     teams={data.qf} 
                     idPrefix="qf"
                   />
 
                   {/* Semi Finals */}
                   <BracketColumn 
-                    title="Semi Finals" 
+                    title="Yarı Final" 
                     teams={data.sf} 
                     idPrefix="sf"
                   />
 
                   {/* Finals */}
                   <BracketColumn 
-                    title="Finals" 
+                    title="Final" 
                     teams={data.f} 
                     idPrefix="f"
                   />
@@ -235,7 +235,7 @@ export default function TournamentPage() {
                     <div className="mb-6 text-center animate-pulse">
                       <Trophy className="w-16 h-16 text-yellow-500 drop-shadow-[0_0_20px_rgba(234,179,8,0.6)]" />
                     </div>
-                    <div className="text-[10px] uppercase tracking-[0.2em] text-yellow-500/60 font-bold mb-2">Champion</div>
+                    <div className="text-[10px] uppercase tracking-[0.2em] text-yellow-500/60 font-bold mb-2">Şampiyon</div>
                     <div className="px-8 py-4 bg-gradient-to-b from-yellow-900/20 to-black border border-yellow-500/30 rounded-xl text-xl font-bold text-yellow-400 shadow-[0_0_30px_rgba(234,179,8,0.15)] min-w-[200px] text-center">
                       {data.champ}
                     </div>
@@ -315,8 +315,8 @@ function AdminPanel({ data, onSave }: { data: TournamentData, onSave: (d: Tourna
       <CardHeader className="border-b border-white/5 pb-6">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-xl font-bold text-white">Tournament Configuration</CardTitle>
-            <p className="text-sm text-white/40 mt-1">Manage participating teams and match results</p>
+            <CardTitle className="text-xl font-bold text-white">Turnuva Ayarları</CardTitle>
+            <p className="text-sm text-white/40 mt-1">Katılımcı takımları ve maç sonuçlarını yönetin</p>
           </div>
           <Button 
             onClick={handleSave}
@@ -325,7 +325,7 @@ function AdminPanel({ data, onSave }: { data: TournamentData, onSave: (d: Tourna
               isSaved ? "bg-green-600 hover:bg-green-700" : "bg-red-600 hover:bg-red-700"
             )}
           >
-            {isSaved ? <><Save className="w-4 h-4 mr-2" /> Saved</> : <><Save className="w-4 h-4 mr-2" /> Save Changes</>}
+            {isSaved ? <><Save className="w-4 h-4 mr-2" /> Kaydedildi</> : <><Save className="w-4 h-4 mr-2" /> Değişiklikleri Kaydet</>}
           </Button>
         </div>
       </CardHeader>
@@ -335,7 +335,7 @@ function AdminPanel({ data, onSave }: { data: TournamentData, onSave: (d: Tourna
             {/* Round of 16 */}
             <div className="space-y-4">
               <h3 className="text-xs uppercase tracking-wider text-red-500 font-bold flex items-center gap-2">
-                <Users className="w-3 h-3" /> Round of 16
+                <Users className="w-3 h-3" /> Son 16 Turu
               </h3>
               <div className="grid gap-3">
                 {formData.r1.map((team, i) => (
@@ -344,7 +344,7 @@ function AdminPanel({ data, onSave }: { data: TournamentData, onSave: (d: Tourna
                     <Input
                       value={team === "TBD" ? "" : team}
                       onChange={(e) => handleChange('r1', i, e.target.value || "TBD")}
-                      placeholder="Team Name"
+                      placeholder="Takım Adı"
                       className="bg-white/5 border-white/10 focus:border-red-500/50 focus:bg-red-500/5 text-xs h-8 transition-all"
                     />
                   </div>
@@ -356,7 +356,7 @@ function AdminPanel({ data, onSave }: { data: TournamentData, onSave: (d: Tourna
               {/* Quarter Finals */}
               <div className="space-y-4">
                 <h3 className="text-xs uppercase tracking-wider text-red-500 font-bold flex items-center gap-2">
-                  <Users className="w-3 h-3" /> Quarter Finals
+                  <Users className="w-3 h-3" /> Çeyrek Final
                 </h3>
                 <div className="grid grid-cols-2 gap-3">
                   {formData.qf.map((team, i) => (
@@ -364,7 +364,7 @@ function AdminPanel({ data, onSave }: { data: TournamentData, onSave: (d: Tourna
                       key={`qf-${i}`}
                       value={team === "TBD" ? "" : team}
                       onChange={(e) => handleChange('qf', i, e.target.value || "TBD")}
-                      placeholder={`QF ${i+1}`}
+                      placeholder={`ÇF ${i+1}`}
                       className="bg-white/5 border-white/10 focus:border-red-500/50 focus:bg-red-500/5 text-xs h-8"
                     />
                   ))}
@@ -374,7 +374,7 @@ function AdminPanel({ data, onSave }: { data: TournamentData, onSave: (d: Tourna
               {/* Semi Finals */}
               <div className="space-y-4">
                 <h3 className="text-xs uppercase tracking-wider text-red-500 font-bold flex items-center gap-2">
-                  <Users className="w-3 h-3" /> Semi Finals
+                  <Users className="w-3 h-3" /> Yarı Final
                 </h3>
                 <div className="grid grid-cols-2 gap-3">
                   {formData.sf.map((team, i) => (
@@ -382,7 +382,7 @@ function AdminPanel({ data, onSave }: { data: TournamentData, onSave: (d: Tourna
                       key={`sf-${i}`}
                       value={team === "TBD" ? "" : team}
                       onChange={(e) => handleChange('sf', i, e.target.value || "TBD")}
-                      placeholder={`SF ${i+1}`}
+                      placeholder={`YF ${i+1}`}
                       className="bg-white/5 border-white/10 focus:border-red-500/50 focus:bg-red-500/5 text-xs h-8"
                     />
                   ))}
@@ -392,7 +392,7 @@ function AdminPanel({ data, onSave }: { data: TournamentData, onSave: (d: Tourna
               {/* Finals & Champ */}
               <div className="p-6 bg-gradient-to-br from-red-900/10 to-black border border-red-500/20 rounded-xl space-y-6">
                 <div className="space-y-3">
-                  <h3 className="text-xs uppercase tracking-wider text-red-400 font-bold">Finalists</h3>
+                  <h3 className="text-xs uppercase tracking-wider text-red-400 font-bold">Finalistler</h3>
                   <div className="grid grid-cols-2 gap-3">
                     {formData.f.map((team, i) => (
                       <Input
@@ -408,12 +408,12 @@ function AdminPanel({ data, onSave }: { data: TournamentData, onSave: (d: Tourna
 
                 <div className="space-y-3 pt-2 border-t border-red-500/20">
                   <h3 className="text-xs uppercase tracking-wider text-yellow-500 font-bold flex items-center gap-2">
-                    <Trophy className="w-3 h-3" /> Champion
+                    <Trophy className="w-3 h-3" /> Şampiyon
                   </h3>
                   <Input
                     value={formData.champ === "TBD" ? "" : formData.champ}
                     onChange={(e) => handleChange('champ', null, e.target.value || "TBD")}
-                    placeholder="Champion Name"
+                    placeholder="Şampiyon Adı"
                     className="bg-yellow-500/10 border-yellow-500/30 text-yellow-200 focus:border-yellow-500 h-10 font-bold text-center"
                   />
                 </div>
