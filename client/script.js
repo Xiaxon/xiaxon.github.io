@@ -7,7 +7,6 @@ const INITIAL_DATA = {
     champ: "TBD"
 };
 
-const STORAGE_KEY = "cs16_tournament_data";
 const AUTH_KEY = "cs16_admin_auth";
 // SHA-256 Hash of "ravza2025."
 const AUTH_HASH = "6eb38a9a2d9f2b5780a8f3b09b9d9011b692993d1b87041c150f736068a6eb59";
@@ -16,10 +15,15 @@ let tournamentData = JSON.parse(JSON.stringify(INITIAL_DATA));
 
 // Initialization
 document.addEventListener('DOMContentLoaded', async () => {
-    // Load saved data
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-        tournamentData = JSON.parse(saved);
+    // Load saved data from server API
+    try {
+        const response = await fetch('/api/tournament');
+        if (response.ok) {
+            const data = await response.json();
+            tournamentData = data;
+        }
+    } catch (err) {
+        console.log('API not available, using defaults');
     }
     
     renderBracket();
@@ -27,6 +31,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     attachInputListeners();
     checkAuth();
     lucide.createIcons();
+    
+    // Poll for updates every 2 seconds
+    setInterval(async () => {
+        try {
+            const response = await fetch('/api/tournament');
+            if (response.ok) {
+                const data = await response.json();
+                if (JSON.stringify(data) !== JSON.stringify(tournamentData)) {
+                    tournamentData = data;
+                    renderBracket();
+                    renderAdminInputs();
+                }
+            }
+        } catch (err) {
+            console.log('Update poll failed');
+        }
+    }, 2000);
     
     // Resize listener for svg lines
     window.addEventListener('resize', () => {
@@ -107,18 +128,41 @@ function togglePasswordVisibility() {
 
 // Save Data
 async function saveData(btn) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(tournamentData));
-    
     const originalText = btn.innerHTML;
-    btn.innerHTML = '<i data-lucide="check"></i> Kaydedildi';
-    btn.style.background = '#16a34a';
+    btn.innerHTML = '<i data-lucide="check"></i> Kaydediliyor...';
+    btn.style.background = '#f59e0b';
     lucide.createIcons();
     
-    setTimeout(() => {
-        btn.innerHTML = originalText;
-        btn.style.background = '';
+    try {
+        const response = await fetch('/api/tournament', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(tournamentData)
+        });
+        
+        if (response.ok) {
+            btn.innerHTML = '<i data-lucide="check"></i> Kaydedildi';
+            btn.style.background = '#16a34a';
+            lucide.createIcons();
+            
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.style.background = '';
+                lucide.createIcons();
+            }, 2000);
+        }
+    } catch (err) {
+        console.error('Save failed:', err);
+        btn.innerHTML = '<i data-lucide="x"></i> Hata!';
+        btn.style.background = '#dc2626';
         lucide.createIcons();
-    }, 2000);
+        
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.style.background = '';
+            lucide.createIcons();
+        }, 3000);
+    }
 }
 
 // Rendering
@@ -180,6 +224,8 @@ function renderAdminInputs() {
 }
 
 function attachInputListeners() {
+    let saveTimeout;
+    
     document.addEventListener('input', (e) => {
         if (e.target.tagName === 'INPUT' && e.target.dataset.section) {
             const section = e.target.dataset.section;
@@ -198,7 +244,16 @@ function attachInputListeners() {
             }
 
             renderBracket();
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(tournamentData));
+            
+            // Auto-save to API after 1 second of inactivity
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => {
+                fetch('/api/tournament', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(tournamentData)
+                }).catch(err => console.log('Auto-save failed:', err));
+            }, 1000);
         }
     });
 }
