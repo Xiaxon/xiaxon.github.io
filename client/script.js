@@ -16,6 +16,23 @@ const AUTH_HASH = "6eb38a9a2d9f2b5780a8f3b09b9d9011b692993d1b87041c150f736068a6e
 let tournamentData = { ...INITIAL_DATA };
 let isPolling = false;
 
+// BroadcastChannel for real-time sync between tabs
+let broadcastChannel;
+try {
+    broadcastChannel = new BroadcastChannel('tournament-channel');
+    broadcastChannel.onmessage = (event) => {
+        if (event.data.type === 'UPDATE') {
+            tournamentData = event.data.data;
+            renderBracket();
+            renderAdminInputs();
+            console.log("[BroadcastChannel] Data synced from another tab");
+        }
+    };
+    console.log("[BroadcastChannel] Initialized");
+} catch (e) {
+    console.log("[BroadcastChannel] Not supported in this browser");
+}
+
 // Initialization
 document.addEventListener('DOMContentLoaded', async () => {
     await loadData();
@@ -118,12 +135,31 @@ async function loadData() {
         if (response.ok) {
             const data = await response.json();
             tournamentData = data;
+            console.log("[API] Data loaded from server");
+        } else {
+            // Fallback to localStorage
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                tournamentData = JSON.parse(saved);
+                console.log("[LocalStorage] Data loaded from localStorage");
+            } else {
+                tournamentData = JSON.parse(JSON.stringify(INITIAL_DATA));
+            }
+        }
+    } catch (e) {
+        console.error("Server unavailable, using localStorage");
+        // Fallback to localStorage when server is down
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+            try {
+                tournamentData = JSON.parse(saved);
+                console.log("[LocalStorage] Using cached data");
+            } catch (parseErr) {
+                tournamentData = JSON.parse(JSON.stringify(INITIAL_DATA));
+            }
         } else {
             tournamentData = JSON.parse(JSON.stringify(INITIAL_DATA));
         }
-    } catch (e) {
-        console.error("Load error", e);
-        tournamentData = JSON.parse(JSON.stringify(INITIAL_DATA));
     }
 }
 
@@ -140,35 +176,44 @@ async function startPolling() {
                 if (JSON.stringify(data) !== JSON.stringify(tournamentData)) {
                     tournamentData = data;
                     renderBracket();
+                    console.log("[API] Data updated from server");
                 }
             }
         } catch (e) {
-            console.error("Polling error", e);
+            // Server not available - ignore polling errors silently
         }
     }, 5000); // Poll every 5 seconds
 }
 
 async function saveData(btn) {
     try {
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(tournamentData)
-        });
+        // Always save to localStorage
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(tournamentData));
         
-        if (response.ok) {
-            // Feedback
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i data-lucide="check"></i> Kaydedildi';
-            btn.style.background = '#16a34a';
-            lucide.createIcons();
-            
-            setTimeout(() => {
-                btn.innerHTML = originalText;
-                btn.style.background = '';
-                lucide.createIcons();
-            }, 2000);
+        // Try to sync with server
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(tournamentData)
+            });
+            console.log("[API] Data synced to server", response.ok);
+        } catch (syncErr) {
+            // Server sync failed, but local save succeeded
+            console.log("[LocalStorage] Data saved locally (server sync failed)");
         }
+        
+        // Feedback
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i data-lucide="check"></i> Kaydedildi';
+        btn.style.background = '#16a34a';
+        lucide.createIcons();
+        
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.style.background = '';
+            lucide.createIcons();
+        }, 2000);
     } catch (e) {
         console.error("Save error", e);
     }
@@ -277,16 +322,25 @@ function attachInputListeners() {
             // Update bracket in real-time
             renderBracket();
             
-            // Send to server immediately
-            try {
-                await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(tournamentData)
+            // Save to localStorage immediately
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(tournamentData));
+            
+            // Broadcast to other tabs
+            if (broadcastChannel) {
+                broadcastChannel.postMessage({
+                    type: 'UPDATE',
+                    data: tournamentData
                 });
-            } catch (e) {
-                console.error("Update error", e);
             }
+            
+            // Try to sync with server (non-blocking)
+            fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(tournamentData)
+            }).catch(() => {
+                // Server not available - ignore silently
+            });
         }
     });
 }
