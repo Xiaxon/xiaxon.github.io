@@ -6,7 +6,7 @@ const INITIAL_DATA = {
         { name: "TEAM Reckless", score: "" },
         { name: "TEAM Ndng", score: "" },
         { name: "TEAM Fofg", score: "" },
-        { name: "BAY Geçti", score: "" }, // FOFG'nin rakibi (R1 - 3. eşleşme)
+        { name: "BAY Geçti", score: "3-0" }, // Skor 3-0 olarak sabit. Üstü çizili olmayacak.
         { name: "TEAM Boga", score: "" },
         { name: "TEAM Ads", score: "" },
         { name: "TEAM Vesselam", score: "" },
@@ -21,7 +21,7 @@ const INITIAL_DATA = {
     qf: [
         { name: "Boş", score: "" },
         { name: "Boş", score: "" },
-        { name: "TEAM Fofg", score: "" }, // FOFG, R1'deki 3. eşleşmenin yerine (index 2) eklendi.
+        { name: "TEAM Fofg", score: "" }, // FOFG doğru ÇF pozisyonunda.
         { name: "Boş", score: "" },
         { name: "Boş", score: "" },
         { name: "Boş", score: "" },
@@ -201,15 +201,15 @@ function createTeamCard(team, id) {
     const name = typeof team === 'string' ? team : team.name;
     const score = typeof team === 'string' ? '' : team.score;
     
-    // BAY GEÇTİ ifadesi için özel sınıf ekle
-    const isStrikethrough = name === "BAY Geçti";
-    const strikethroughClass = isStrikethrough ? ' strikethrough' : '';
+    // Strikethrough kaldırıldı
     
     const isFilled = name !== "Boş" && name !== "TBD"; 
+    
+    // Skor varsa göster
     const scoreDisplay = score ? ` <span class="team-score">${score}</span>` : '';
     
     return `
-        <div id="${id}" class="team-card ${isFilled ? 'filled' : ''}${strikethroughClass}">
+        <div id="${id}" class="team-card ${isFilled ? 'filled' : ''}">
             <span class="team-name">${name}</span>${scoreDisplay}
         </div>
     `;
@@ -272,7 +272,6 @@ function attachInputListeners() {
                 tournamentData.champ = value || "TBD";
             } else {
                 if (field === 'name') {
-                    // Otomatik atamaları ve 'BAY Geçti' gibi manuel değerleri koru
                     let defaultValue = "TBD";
                     
                     // Bay geçtiği için QF'ye otomatik eklenen FOFG'yi koru
@@ -280,8 +279,14 @@ function attachInputListeners() {
                         defaultValue = "TEAM Fofg";
                     }
                     // R1'deki "BAY Geçti" ibaresini koru
-                    if (section === 'r1' && index === 5 && tournamentData[section][index].name === "BAY Geçti") {
-                         defaultValue = "BAY Geçti";
+                    if (section === 'r1' && index === 5) {
+                         // Eğer input boşsa ve score alanı doluysa, otomatik isim atamasını engelle.
+                         if (!value && tournamentData[section][index].score) {
+                             // Sadece FOFG'nin rakibi olan BAY Geçti'yi koruyalım
+                            if (tournamentData[section][index].name === "BAY Geçti") {
+                                defaultValue = "BAY Geçti";
+                            }
+                         }
                     }
                     
                     tournamentData[section][index].name = value || defaultValue;
