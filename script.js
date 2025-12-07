@@ -21,7 +21,7 @@ const INITIAL_DATA = {
     qf: [
         { name: "Boş", score: "" },
         { name: "Boş", score: "" },
-        { name: "TEAM Fofg", score: "" }, // Düzeltildi: FOFG, R1'deki 3. eşleşmenin yerine (index 2) eklendi.
+        { name: "TEAM Fofg", score: "" }, // FOFG, R1'deki 3. eşleşmenin yerine (index 2) eklendi.
         { name: "Boş", score: "" },
         { name: "Boş", score: "" },
         { name: "Boş", score: "" },
@@ -200,11 +200,16 @@ function renderBracket() {
 function createTeamCard(team, id) {
     const name = typeof team === 'string' ? team : team.name;
     const score = typeof team === 'string' ? '' : team.score;
-    // 'BAY Geçti' olsa bile kartı doldurur
+    
+    // BAY GEÇTİ ifadesi için özel sınıf ekle
+    const isStrikethrough = name === "BAY Geçti";
+    const strikethroughClass = isStrikethrough ? ' strikethrough' : '';
+    
     const isFilled = name !== "Boş" && name !== "TBD"; 
     const scoreDisplay = score ? ` <span class="team-score">${score}</span>` : '';
+    
     return `
-        <div id="${id}" class="team-card ${isFilled ? 'filled' : ''}">
+        <div id="${id}" class="team-card ${isFilled ? 'filled' : ''}${strikethroughClass}">
             <span class="team-name">${name}</span>${scoreDisplay}
         </div>
     `;
