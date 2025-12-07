@@ -5,8 +5,8 @@ const INITIAL_DATA = {
         { name: "TEAM Joygame", score: "" },
         { name: "TEAM Reckless", score: "" },
         { name: "TEAM Ndng", score: "" },
-        { name: "TEAM Fofg", score: "3" }, // GÜNCELLENDİ: FOFG skoru 3
-        { name: "BAY Geçti", score: "0" }, // GÜNCELLENDİ: BAY Geçti skoru 0
+        { name: "TEAM Fofg", score: "3" }, // FOFG skoru 3
+        { name: "BAY Geçti", score: "0" }, // BAY Geçti skoru 0
         { name: "TEAM Boga", score: "" },
         { name: "TEAM Ads", score: "" },
         { name: "TEAM Vesselam", score: "" },
@@ -201,9 +201,13 @@ function createTeamCard(team, id) {
     const name = typeof team === 'string' ? team : team.name;
     const score = typeof team === 'string' ? '' : team.score;
     
-    // Strikethrough kaldırıldı
+    // 'Boş' veya 'TBD' değilse doldurulmuş kabul et
+    let isFilled = name !== "Boş" && name !== "TBD";
     
-    const isFilled = name !== "Boş" && name !== "TBD"; 
+    // BAY Geçti için özel durum: Filled sınıfını kaldırmak (kırmızı rengi söndürmek)
+    if (name === "BAY Geçti") {
+        isFilled = false;
+    }
     
     // Skor varsa göster
     const scoreDisplay = score ? ` <span class="team-score">${score}</span>` : '';
