@@ -1,6 +1,23 @@
 // Data State
 const INITIAL_DATA = {
-    r1: Array(16).fill(null).map(() => ({ name: "Boş", score: "" })),
+    r1: [
+        { name: "CHAMPS", score: "" },
+        { name: "JOYGAME", score: "" },
+        { name: "RECKLESS", score: "" },
+        { name: "NDNG", score: "" },
+        { name: "FOFG", score: "" },
+        { name: "BAY GEÇTİ", score: "" },
+        { name: "BOGA", score: "" },
+        { name: "ADS", score: "" },
+        { name: "VESSELAM", score: "" },
+        { name: "LCA", score: "" },
+        { name: "DOSTMECLİSİ", score: "" },
+        { name: "LEGAND", score: "" },
+        { name: "TAPRO", score: "" },
+        { name: "TREBLES", score: "" },
+        { name: "DEREBOYU", score: "" },
+        { name: "696", score: "" }
+    ],
     qf: Array(8).fill(null).map(() => ({ name: "Boş", score: "" })),
     sf: Array(4).fill(null).map(() => ({ name: "Boş", score: "" })),
     f: Array(2).fill(null).map(() => ({ name: "Boş", score: "" })),
@@ -174,7 +191,8 @@ function renderBracket() {
 function createTeamCard(team, id) {
     const name = typeof team === 'string' ? team : team.name;
     const score = typeof team === 'string' ? '' : team.score;
-    const isFilled = name !== "TBD";
+    // 'BAY GEÇTİ' olsa bile kartı doldurur, bu sayede görünebilir.
+    const isFilled = name !== "Boş" && name !== "TBD"; 
     const scoreDisplay = score ? ` <span class="team-score">${score}</span>` : '';
     return `
         <div id="${id}" class="team-card ${isFilled ? 'filled' : ''}">
@@ -189,7 +207,7 @@ function renderAdminInputs() {
     r1Container.innerHTML = tournamentData.r1.map((val, i) => `
         <div class="input-row">
             <span class="input-num">${String(i+1).padStart(2, '0')}</span>
-            <input type="text" value="${val.name === 'TBD' ? '' : val.name}" placeholder="Takım Adı" data-section="r1" data-index="${i}" data-field="name">
+            <input type="text" value="${val.name === 'Boş' || val.name === 'TBD' ? '' : val.name}" placeholder="Takım Adı" data-section="r1" data-index="${i}" data-field="name">
             <input type="text" value="${val.score}" placeholder="Skor" data-section="r1" data-index="${i}" data-field="score" class="score-input">
         </div>
     `).join('');
@@ -240,7 +258,9 @@ function attachInputListeners() {
                 tournamentData.champ = value || "TBD";
             } else {
                 if (field === 'name') {
-                    tournamentData[section][index].name = value || "TBD";
+                    // Not: Boş bırakıldığında TBD olarak atanır, ancak 'BAY GEÇTİ' gibi 
+                    // manuel girilmiş değerler korunmalıdır.
+                    tournamentData[section][index].name = value || (tournamentData[section][index].name === "BAY GEÇTİ" ? "BAY GEÇTİ" : "TBD");
                 } else if (field === 'score') {
                     tournamentData[section][index].score = value;
                 }
