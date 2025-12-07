@@ -5,8 +5,8 @@ const INITIAL_DATA = {
         { name: "TEAM Joygame", score: "" },
         { name: "TEAM Reckless", score: "" },
         { name: "TEAM Ndng", score: "" },
-        { name: "TEAM Fofg", score: "" },
-        { name: "BAY Geçti", score: "3-0" }, // Skor 3-0 olarak sabit. Üstü çizili olmayacak.
+        { name: "TEAM Fofg", score: "3" }, // GÜNCELLENDİ: FOFG skoru 3
+        { name: "BAY Geçti", score: "0" }, // GÜNCELLENDİ: BAY Geçti skoru 0
         { name: "TEAM Boga", score: "" },
         { name: "TEAM Ads", score: "" },
         { name: "TEAM Vesselam", score: "" },
@@ -21,7 +21,7 @@ const INITIAL_DATA = {
     qf: [
         { name: "Boş", score: "" },
         { name: "Boş", score: "" },
-        { name: "TEAM Fofg", score: "" }, // FOFG doğru ÇF pozisyonunda.
+        { name: "TEAM Fofg", score: "" }, // FOFG doğru ÇF pozisyonunda (index 2).
         { name: "Boş", score: "" },
         { name: "Boş", score: "" },
         { name: "Boş", score: "" },
@@ -278,14 +278,10 @@ function attachInputListeners() {
                     if (section === 'qf' && index === 2 && tournamentData[section][index].name === "TEAM Fofg") {
                         defaultValue = "TEAM Fofg";
                     }
-                    // R1'deki "BAY Geçti" ibaresini koru
+                    // R1'deki "BAY Geçti" ibaresini koru (manuel olarak düzenlenmedikçe)
                     if (section === 'r1' && index === 5) {
-                         // Eğer input boşsa ve score alanı doluysa, otomatik isim atamasını engelle.
-                         if (!value && tournamentData[section][index].score) {
-                             // Sadece FOFG'nin rakibi olan BAY Geçti'yi koruyalım
-                            if (tournamentData[section][index].name === "BAY Geçti") {
-                                defaultValue = "BAY Geçti";
-                            }
+                         if (!value && tournamentData[section][index].name === "BAY Geçti") {
+                            defaultValue = "BAY Geçti";
                          }
                     }
                     
