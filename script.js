@@ -6,7 +6,7 @@ const INITIAL_DATA = {
         { name: "TEAM Reckless", score: "" },
         { name: "TEAM Ndng", score: "" },
         { name: "TEAM Fofg", score: "" },
-        { name: "BAY Geçti", score: "" }, // FOFG'nin rakibi
+        { name: "BAY Geçti", score: "" }, // FOFG'nin rakibi (R1 - 3. eşleşme)
         { name: "TEAM Boga", score: "" },
         { name: "TEAM Ads", score: "" },
         { name: "TEAM Vesselam", score: "" },
@@ -19,9 +19,9 @@ const INITIAL_DATA = {
         { name: "TEAM 696", score: "" }
     ],
     qf: [
-        { name: "TEAM Fofg", score: "" }, // BAY geçtiği için QF'deki ilk slota eklendi
         { name: "Boş", score: "" },
         { name: "Boş", score: "" },
+        { name: "TEAM Fofg", score: "" }, // Düzeltildi: FOFG, R1'deki 3. eşleşmenin yerine (index 2) eklendi.
         { name: "Boş", score: "" },
         { name: "Boş", score: "" },
         { name: "Boş", score: "" },
@@ -200,7 +200,7 @@ function renderBracket() {
 function createTeamCard(team, id) {
     const name = typeof team === 'string' ? team : team.name;
     const score = typeof team === 'string' ? '' : team.score;
-    // 'BAY GEÇTİ' olsa bile kartı doldurur
+    // 'BAY Geçti' olsa bile kartı doldurur
     const isFilled = name !== "Boş" && name !== "TBD"; 
     const scoreDisplay = score ? ` <span class="team-score">${score}</span>` : '';
     return `
@@ -267,15 +267,18 @@ function attachInputListeners() {
                 tournamentData.champ = value || "TBD";
             } else {
                 if (field === 'name') {
-                    // Otomatik atamaları ve 'BAY GEÇTİ' gibi manuel değerleri koru
+                    // Otomatik atamaları ve 'BAY Geçti' gibi manuel değerleri koru
                     let defaultValue = "TBD";
-                    if (tournamentData[section][index].name === "BAY Geçti") {
-                        defaultValue = "BAY Geçti";
-                    }
-                    if (tournamentData[section][index].name === "TEAM Fofg" && section === 'qf' && index === 0) {
+                    
+                    // Bay geçtiği için QF'ye otomatik eklenen FOFG'yi koru
+                    if (section === 'qf' && index === 2 && tournamentData[section][index].name === "TEAM Fofg") {
                         defaultValue = "TEAM Fofg";
                     }
-
+                    // R1'deki "BAY Geçti" ibaresini koru
+                    if (section === 'r1' && index === 5 && tournamentData[section][index].name === "BAY Geçti") {
+                         defaultValue = "BAY Geçti";
+                    }
+                    
                     tournamentData[section][index].name = value || defaultValue;
                 } else if (field === 'score') {
                     tournamentData[section][index].score = value;
