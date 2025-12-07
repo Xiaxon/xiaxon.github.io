@@ -1,24 +1,33 @@
 // Data State
 const INITIAL_DATA = {
     r1: [
-        { name: "CHAMPS", score: "" },
-        { name: "JOYGAME", score: "" },
-        { name: "RECKLESS", score: "" },
-        { name: "NDNG", score: "" },
-        { name: "FOFG", score: "" },
-        { name: "BAY GEÇTİ", score: "" },
-        { name: "BOGA", score: "" },
-        { name: "ADS", score: "" },
-        { name: "VESSELAM", score: "" },
-        { name: "LCA", score: "" },
-        { name: "DOSTMECLİSİ", score: "" },
-        { name: "LEGAND", score: "" },
-        { name: "TAPRO", score: "" },
-        { name: "TREBLES", score: "" },
-        { name: "DEREBOYU", score: "" },
-        { name: "696", score: "" }
+        { name: "TEAM Champs", score: "" },
+        { name: "TEAM Joygame", score: "" },
+        { name: "TEAM Reckless", score: "" },
+        { name: "TEAM Ndng", score: "" },
+        { name: "TEAM Fofg", score: "" },
+        { name: "BAY Geçti", score: "" }, // FOFG'nin rakibi
+        { name: "TEAM Boga", score: "" },
+        { name: "TEAM Ads", score: "" },
+        { name: "TEAM Vesselam", score: "" },
+        { name: "TEAM Lca", score: "" },
+        { name: "TEAM Dostmeclisi", score: "" },
+        { name: "TEAM Legand", score: "" },
+        { name: "TEAM Tapro", score: "" },
+        { name: "TEAM Trebles", score: "" },
+        { name: "TEAM Dereboyu", score: "" },
+        { name: "TEAM 696", score: "" }
     ],
-    qf: Array(8).fill(null).map(() => ({ name: "Boş", score: "" })),
+    qf: [
+        { name: "TEAM Fofg", score: "" }, // BAY geçtiği için QF'deki ilk slota eklendi
+        { name: "Boş", score: "" },
+        { name: "Boş", score: "" },
+        { name: "Boş", score: "" },
+        { name: "Boş", score: "" },
+        { name: "Boş", score: "" },
+        { name: "Boş", score: "" },
+        { name: "Boş", score: "" }
+    ],
     sf: Array(4).fill(null).map(() => ({ name: "Boş", score: "" })),
     f: Array(2).fill(null).map(() => ({ name: "Boş", score: "" })),
     champ: "Boş"
@@ -191,7 +200,7 @@ function renderBracket() {
 function createTeamCard(team, id) {
     const name = typeof team === 'string' ? team : team.name;
     const score = typeof team === 'string' ? '' : team.score;
-    // 'BAY GEÇTİ' olsa bile kartı doldurur, bu sayede görünebilir.
+    // 'BAY GEÇTİ' olsa bile kartı doldurur
     const isFilled = name !== "Boş" && name !== "TBD"; 
     const scoreDisplay = score ? ` <span class="team-score">${score}</span>` : '';
     return `
@@ -216,7 +225,7 @@ function renderAdminInputs() {
     const qfContainer = document.getElementById('admin-qf');
     qfContainer.innerHTML = tournamentData.qf.map((val, i) => `
         <div class="input-row-qf">
-            <input type="text" value="${val.name === 'TBD' ? '' : val.name}" placeholder="ÇF ${i+1}" data-section="qf" data-index="${i}" data-field="name">
+            <input type="text" value="${val.name === 'Boş' || val.name === 'TBD' ? '' : val.name}" placeholder="ÇF ${i+1}" data-section="qf" data-index="${i}" data-field="name">
             <input type="text" value="${val.score}" placeholder="Skor" data-section="qf" data-index="${i}" data-field="score" class="score-input">
         </div>
     `).join('');
@@ -258,9 +267,16 @@ function attachInputListeners() {
                 tournamentData.champ = value || "TBD";
             } else {
                 if (field === 'name') {
-                    // Not: Boş bırakıldığında TBD olarak atanır, ancak 'BAY GEÇTİ' gibi 
-                    // manuel girilmiş değerler korunmalıdır.
-                    tournamentData[section][index].name = value || (tournamentData[section][index].name === "BAY GEÇTİ" ? "BAY GEÇTİ" : "TBD");
+                    // Otomatik atamaları ve 'BAY GEÇTİ' gibi manuel değerleri koru
+                    let defaultValue = "TBD";
+                    if (tournamentData[section][index].name === "BAY Geçti") {
+                        defaultValue = "BAY Geçti";
+                    }
+                    if (tournamentData[section][index].name === "TEAM Fofg" && section === 'qf' && index === 0) {
+                        defaultValue = "TEAM Fofg";
+                    }
+
+                    tournamentData[section][index].name = value || defaultValue;
                 } else if (field === 'score') {
                     tournamentData[section][index].score = value;
                 }
