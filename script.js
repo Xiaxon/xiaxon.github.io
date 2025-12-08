@@ -5,10 +5,10 @@ const INITIAL_DATA = {
         { name: "TEAM Joygame", score: "" },
         { name: "TEAM Reckless", score: "" },
         { name: "TEAM Ndng", score: "" },
-        { name: "TEAM Fofg", score: "3" }, // GÜNCELLENDİ: FOFG skoru 3
-        { name: "BAY Geçti", score: "0" }, // GÜNCELLENDİ: BAY Geçti skoru 0
-        { name: "TEAM Boga", score: "" },
-        { name: "TEAM Ads", score: "" },
+        { name: "TEAM Fofg", score: "3" }, 
+        { name: "BAY Geçti", score: "0" }, 
+        { name: "TEAM Boga", score: "2" }, // Boga 2 skor
+        { name: "TEAM Ads", score: "0" }, // Ads 0 skor
         { name: "TEAM Vesselam", score: "" },
         { name: "TEAM Lca", score: "" },
         { name: "TEAM Dostmeclisi", score: "" },
@@ -21,8 +21,8 @@ const INITIAL_DATA = {
     qf: [
         { name: "Boş", score: "" },
         { name: "Boş", score: "" },
-        { name: "TEAM Fofg", score: "" }, // FOFG doğru ÇF pozisyonunda (index 2).
-        { name: "Boş", score: "" },
+        { name: "TEAM Fofg", score: "" }, 
+        { name: "TEAM Boga", score: "" }, // Boga, ÇF'de doğru pozisyonda.
         { name: "Boş", score: "" },
         { name: "Boş", score: "" },
         { name: "Boş", score: "" },
@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderBracket();
     renderAdminInputs();
     attachInputListeners();
-    checkAuth(); // Check if already logged in
+    checkAuth();
     lucide.createIcons();
     
     // Resize listener for svg lines
@@ -57,13 +57,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// Tab Switching
+// Tab Switching (Kısa tutuldu)
 function switchTab(tabId, btn) {
-    // Hide all tabs
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
     
-    // Show selected
     document.getElementById(tabId).classList.add('active');
     btn.classList.add('active');
     
@@ -72,14 +70,13 @@ function switchTab(tabId, btn) {
     }
 }
 
-// Authentication Logic
+// Authentication Logic (Kısa tutuldu)
 async function handleLogin(event) {
     event.preventDefault();
     const passwordInput = document.getElementById('admin-password');
     const errorMsg = document.getElementById('login-error');
     const password = passwordInput.value;
 
-    // Client-side hashing
     const msgBuffer = new TextEncoder().encode(password);
     const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
@@ -120,17 +117,6 @@ function logout() {
     showLogin();
 }
 
-function togglePasswordVisibility() {
-    const input = document.getElementById('admin-password');
-    const icon = document.querySelector('.toggle-password i');
-    
-    if (input.type === 'password') {
-        input.type = 'text';
-    } else {
-        input.type = 'password';
-    }
-}
-
 // Data Management
 function loadData() {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -145,7 +131,6 @@ function loadData() {
                 champ: parsed.champ || "TBD"
             };
         } catch (e) {
-            console.error("Parse error", e);
             tournamentData = JSON.parse(JSON.stringify(INITIAL_DATA));
         }
     } else {
@@ -156,10 +141,8 @@ function loadData() {
 function saveData(btn) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(tournamentData));
     
-    // Update UI
     renderBracket();
     
-    // Feedback
     const originalText = btn.innerHTML;
     btn.innerHTML = '<i data-lucide="check"></i> Kaydedildi';
     btn.style.background = '#16a34a';
@@ -172,8 +155,69 @@ function saveData(btn) {
     }, 2000);
 }
 
+// --- KAZANAN İLERLETME MANTIĞI ---
+function getWinner(team1, team2) {
+    const score1 = parseInt(team1.score);
+    const score2 = parseInt(team2.score);
+
+    if (isNaN(score1) || isNaN(score2) || score1 === score2) return null;
+    
+    if (score1 > score2) return team1.name;
+    if (score2 > score1) return team2.name;
+    
+    return null;
+}
+
+function getNextRoundInfo(currentSection, currentIndex) {
+    let nextSection, nextIndex;
+
+    if (currentSection === 'r1') {
+        nextSection = 'qf';
+        nextIndex = Math.floor(currentIndex / 2);
+    } else if (currentSection === 'qf') {
+        nextSection = 'sf';
+        nextIndex = Math.floor(currentIndex / 2);
+    } else if (currentSection === 'sf') {
+        nextSection = 'f';
+        nextIndex = Math.floor(currentIndex / 2);
+    } else {
+        return null; 
+    }
+    return { nextSection, nextIndex };
+}
+
+function updateTournamentState() {
+    // R1 -> QF İlerletme
+    for (let i = 0; i < tournamentData.r1.length; i += 2) {
+        const team1 = tournamentData.r1[i];
+        const team2 = tournamentData.r1[i + 1];
+        
+        const winnerName = getWinner(team1, team2);
+        const nextRound = getNextRoundInfo('r1', i);
+
+        if (winnerName && nextRound) {
+            // Sadece Boş ise veya zaten galip olan takım ise güncelle
+            if (tournamentData[nextRound.nextSection][nextRound.nextIndex].name === 'Boş' || tournamentData[nextRound.nextSection][nextRound.nextIndex].name === winnerName) {
+                 tournamentData[nextRound.nextSection][nextRound.nextIndex].name = winnerName;
+            }
+        } else if (nextRound) {
+             // Skorlar tamamlanmadıysa, Boş'a çevir 
+             if (tournamentData[nextRound.nextSection][nextRound.nextIndex].name !== 'Boş') {
+                 // Otomatik korunan takımları koru (Fofg, Boga)
+                 if (!['TEAM Fofg', 'TEAM Boga'].includes(tournamentData[nextRound.nextSection][nextRound.nextIndex].name)) {
+                      tournamentData[nextRound.nextSection][nextRound.nextIndex].name = 'Boş';
+                 }
+             }
+        }
+    }
+}
+// --- KAZANAN İLERLETME MANTIĞI SONU ---
+
+
 // Rendering
 function renderBracket() {
+    updateTournamentState(); 
+    
     // Fill Round of 16
     const r1List = document.getElementById('r1-list');
     r1List.innerHTML = tournamentData.r1.map((team, i) => createTeamCard(team, `r1-${i}`)).join('');
@@ -201,19 +245,35 @@ function createTeamCard(team, id) {
     const name = typeof team === 'string' ? team : team.name;
     const score = typeof team === 'string' ? '' : team.score;
     
-    // Strikethrough kaldırıldı
+    // 'Boş' veya 'TBD' değilse doldurulmuş kabul et
+    let isFilled = name !== "Boş" && name !== "TBD";
     
-    const isFilled = name !== "Boş" && name !== "TBD"; 
+    // Kaybeden mantığı: Skoru "0" olan ve "BAY Geçti" olmayan takımların karartılması
+    const isLoser = (score === "0" || score === "00") && name !== "BAY Geçti" && name !== "Boş";
     
+    let passiveStyle = ''; // Karartma stili
+    
+    if (isLoser) {
+        isFilled = false; // Kırmızı vurguyu kaldır
+        passiveStyle = 'style="opacity: 0.6;"'; // Karartma (sönükleştirme) stili
+    }
+    
+    // BAY Geçti için özel durum: Sadece kırmızı vurguyu kaldır
+    if (name === "BAY Geçti") {
+        isFilled = false;
+        passiveStyle = 'style="opacity: 0.6;"'; // Onu da karartalım, elenmiş gibi dursun.
+    }
+
     // Skor varsa göster
     const scoreDisplay = score ? ` <span class="team-score">${score}</span>` : '';
     
     return `
-        <div id="${id}" class="team-card ${isFilled ? 'filled' : ''}">
+        <div id="${id}" class="team-card ${isFilled ? 'filled' : ''}" ${passiveStyle}>
             <span class="team-name">${name}</span>${scoreDisplay}
         </div>
     `;
 }
+
 
 function renderAdminInputs() {
     // R1 Inputs
@@ -235,7 +295,7 @@ function renderAdminInputs() {
         </div>
     `).join('');
 
-    // SF Inputs
+    // SF Inputs (Kısa tutuldu)
     const sfContainer = document.getElementById('admin-sf');
     sfContainer.innerHTML = tournamentData.sf.map((val, i) => `
         <div class="input-row-sf">
@@ -244,7 +304,7 @@ function renderAdminInputs() {
         </div>
     `).join('');
 
-    // F Inputs
+    // F Inputs (Kısa tutuldu)
     const fContainer = document.getElementById('admin-f');
     fContainer.innerHTML = tournamentData.f.map((val, i) => `
         <div class="input-row-f">
@@ -260,7 +320,6 @@ function renderAdminInputs() {
 }
 
 function attachInputListeners() {
-    // Listen for all input changes
     document.addEventListener('input', (e) => {
         if (e.target.tagName === 'INPUT' && e.target.dataset.section) {
             const section = e.target.dataset.section;
@@ -272,17 +331,16 @@ function attachInputListeners() {
                 tournamentData.champ = value || "TBD";
             } else {
                 if (field === 'name') {
+                    // Otomatik atanan isimleri koruma mantığı
                     let defaultValue = "TBD";
-                    
-                    // Bay geçtiği için QF'ye otomatik eklenen FOFG'yi koru
+                    if (section === 'r1' && index === 5 && tournamentData[section][index].name === "BAY Geçti") {
+                         defaultValue = "BAY Geçti";
+                    }
                     if (section === 'qf' && index === 2 && tournamentData[section][index].name === "TEAM Fofg") {
                         defaultValue = "TEAM Fofg";
                     }
-                    // R1'deki "BAY Geçti" ibaresini koru (manuel olarak düzenlenmedikçe)
-                    if (section === 'r1' && index === 5) {
-                         if (!value && tournamentData[section][index].name === "BAY Geçti") {
-                            defaultValue = "BAY Geçti";
-                         }
+                    if (section === 'qf' && index === 3 && tournamentData[section][index].name === "TEAM Boga") {
+                        defaultValue = "TEAM Boga";
                     }
                     
                     tournamentData[section][index].name = value || defaultValue;
@@ -291,10 +349,7 @@ function attachInputListeners() {
                 }
             }
 
-            // Update localStorage
             localStorage.setItem(STORAGE_KEY, JSON.stringify(tournamentData));
-
-            // Update bracket in real-time
             renderBracket();
         }
     });
