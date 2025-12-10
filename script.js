@@ -1,10 +1,10 @@
 // Data State
 const INITIAL_DATA = {
     r1: [
-        { name: "TEAM Champs", score: "0" }, // GÜNCELLENDİ: Diskalifiye, skor 0
-        { name: "TEAM Joygame", score: "2" },  // GÜNCELLENDİ: Hükmen galip, skor 2
-        { name: "TEAM Reckless", score: "" },
-        { name: "TEAM Ndng", score: "" },
+        { name: "TEAM Champs", score: "0" }, 
+        { name: "TEAM Joygame", score: "2" }, 
+        { name: "TEAM Reckless", score: "0" },  // GÜNCELLENDİ: Reckless skor 0
+        { name: "TEAM Ndng", score: "2" },      // GÜNCELLENDİ: Ndng skor 2
         { name: "TEAM Fofg", score: "3" }, 
         { name: "BAY Geçti", score: "0" }, 
         { name: "TEAM Boga", score: "2" }, 
@@ -19,8 +19,8 @@ const INITIAL_DATA = {
         { name: "TEAM 696", score: "" }
     ],
     qf: [
-        { name: "TEAM Joygame", score: "" }, // GÜNCELLENDİ: Joygame ÇF'ye çıktı (index 0).
-        { name: "Boş", score: "" },
+        { name: "TEAM Joygame", score: "" }, 
+        { name: "TEAM Ndng", score: "" },     // GÜNCELLENDİ: Ndng ÇF'ye çıktı (index 1).
         { name: "TEAM Fofg", score: "" }, 
         { name: "TEAM Boga", score: "" }, 
         { name: "TEAM Lca", score: "" },      
@@ -203,8 +203,9 @@ function updateTournamentState() {
         } else if (nextRound) {
              // Skorlar tamamlanmadıysa, Boş'a çevir 
              if (tournamentData[nextRound.nextSection][nextRound.nextIndex].name !== 'Boş') {
-                 // Otomatik korunan takımları koru (Joygame, Fofg, Boga, Lca)
-                 if (!['TEAM Joygame', 'TEAM Fofg', 'TEAM Boga', 'TEAM Lca'].includes(tournamentData[nextRound.nextSection][nextRound.nextIndex].name)) {
+                 // Otomatik korunan takımları koru 
+                 const protectedTeams = ['TEAM Joygame', 'TEAM Ndng', 'TEAM Fofg', 'TEAM Boga', 'TEAM Lca'];
+                 if (!protectedTeams.includes(tournamentData[nextRound.nextSection][nextRound.nextIndex].name)) {
                       tournamentData[nextRound.nextSection][nextRound.nextIndex].name = 'Boş';
                  }
              }
@@ -248,8 +249,7 @@ function createTeamCard(team, id) {
     // 'Boş' veya 'TBD' değilse doldurulmuş kabul et
     let isFilled = name !== "Boş" && name !== "TBD";
     
-    // Kaybeden mantığı: Skoru "0" olan ve "BAY Geçti" olmayan takımların karartılması
-    // Diskalifiye edilen (Champs) de skor 0 olduğu için karartılacak.
+    // Kaybeden mantığı: Skoru "0" olan ve "Boş" olmayan takımların karartılması
     const isLoser = (score === "0" || score === "00") && name !== "Boş";
     
     let passiveStyle = ''; // Karartma stili
@@ -340,6 +340,9 @@ function attachInputListeners() {
                     // QF korumaları
                     if (section === 'qf' && index === 0 && tournamentData[section][index].name === "TEAM Joygame") {
                         defaultValue = "TEAM Joygame";
+                    }
+                    if (section === 'qf' && index === 1 && tournamentData[section][index].name === "TEAM Ndng") { // Ndng koruması
+                        defaultValue = "TEAM Ndng";
                     }
                     if (section === 'qf' && index === 2 && tournamentData[section][index].name === "TEAM Fofg") {
                         defaultValue = "TEAM Fofg";
