@@ -7,10 +7,10 @@ const INITIAL_DATA = {
         { name: "TEAM Ndng", score: "" },
         { name: "TEAM Fofg", score: "3" }, 
         { name: "BAY Geçti", score: "0" }, 
-        { name: "TEAM Boga", score: "2" }, // Boga 2 skor
-        { name: "TEAM Ads", score: "0" }, // Ads 0 skor
-        { name: "TEAM Vesselam", score: "" },
-        { name: "TEAM Lca", score: "" },
+        { name: "TEAM Boga", score: "2" }, 
+        { name: "TEAM Ads", score: "0" }, 
+        { name: "TEAM Vesselam", score: "0" }, // GÜNCELLENDİ: Vesselam skoru 0
+        { name: "TEAM Lca", score: "2" },      // GÜNCELLENDİ: Lca skoru 2
         { name: "TEAM Dostmeclisi", score: "" },
         { name: "TEAM Legand", score: "" },
         { name: "TEAM Tapro", score: "" },
@@ -22,8 +22,8 @@ const INITIAL_DATA = {
         { name: "Boş", score: "" },
         { name: "Boş", score: "" },
         { name: "TEAM Fofg", score: "" }, 
-        { name: "TEAM Boga", score: "" }, // Boga, ÇF'de doğru pozisyonda.
-        { name: "Boş", score: "" },
+        { name: "TEAM Boga", score: "" }, 
+        { name: "TEAM Lca", score: "" },      // GÜNCELLENDİ: Lca, ÇF'de doğru pozisyonda (index 4).
         { name: "Boş", score: "" },
         { name: "Boş", score: "" },
         { name: "Boş", score: "" }
@@ -203,8 +203,8 @@ function updateTournamentState() {
         } else if (nextRound) {
              // Skorlar tamamlanmadıysa, Boş'a çevir 
              if (tournamentData[nextRound.nextSection][nextRound.nextIndex].name !== 'Boş') {
-                 // Otomatik korunan takımları koru (Fofg, Boga)
-                 if (!['TEAM Fofg', 'TEAM Boga'].includes(tournamentData[nextRound.nextSection][nextRound.nextIndex].name)) {
+                 // Otomatik korunan takımları koru (Fofg, Boga, Lca)
+                 if (!['TEAM Fofg', 'TEAM Boga', 'TEAM Lca'].includes(tournamentData[nextRound.nextSection][nextRound.nextIndex].name)) {
                       tournamentData[nextRound.nextSection][nextRound.nextIndex].name = 'Boş';
                  }
              }
@@ -258,10 +258,10 @@ function createTeamCard(team, id) {
         passiveStyle = 'style="opacity: 0.6;"'; // Karartma (sönükleştirme) stili
     }
     
-    // BAY Geçti için özel durum: Sadece kırmızı vurguyu kaldır
+    // BAY Geçti için özel durum: Sadece kırmızı vurguyu kaldır ve karart
     if (name === "BAY Geçti") {
         isFilled = false;
-        passiveStyle = 'style="opacity: 0.6;"'; // Onu da karartalım, elenmiş gibi dursun.
+        passiveStyle = 'style="opacity: 0.6;"'; 
     }
 
     // Skor varsa göster
@@ -341,6 +341,9 @@ function attachInputListeners() {
                     }
                     if (section === 'qf' && index === 3 && tournamentData[section][index].name === "TEAM Boga") {
                         defaultValue = "TEAM Boga";
+                    }
+                    if (section === 'qf' && index === 4 && tournamentData[section][index].name === "TEAM Lca") {
+                        defaultValue = "TEAM Lca";
                     }
                     
                     tournamentData[section][index].name = value || defaultValue;
