@@ -9,24 +9,24 @@ const INITIAL_DATA = {
         { name: "BAY Geçti", score: "0" }, 
         { name: "TEAM Boga", score: "2" }, 
         { name: "TEAM Ads", score: "0" }, 
-        { name: "TEAM Vesselam", score: "2" }, // GÜNCELLENDİ: Vesselam skoru 2
-        { name: "TEAM Lca", score: "0" },      // GÜNCELLENDİ: Lca skoru 0
+        { name: "TEAM Vesselam", score: "2" }, 
+        { name: "TEAM Lca", score: "0" },      
         { name: "TEAM Dostmeclisi", score: "" },
         { name: "TEAM Legand", score: "" },
         { name: "TEAM Tapro", score: "" },
         { name: "TEAM Trebles", score: "" },
-        { name: "TEAM Dereboyu", score: "" },
-        { name: "TEAM 696", score: "" }
+        { name: "TEAM Dereboyu", score: "0" },  // GÜNCELLENDİ: Dereboyu skor 0
+        { name: "TEAM 696", score: "2" }        // GÜNCELLENDİ: 696 skor 2
     ],
     qf: [
         { name: "TEAM Joygame", score: "" }, 
         { name: "TEAM Ndng", score: "" },     
         { name: "TEAM Fofg", score: "" }, 
         { name: "TEAM Boga", score: "" }, 
-        { name: "TEAM Vesselam", score: "" }, // GÜNCELLENDİ: Vesselam ÇF'ye çıktı (index 4).
+        { name: "TEAM Vesselam", score: "" }, 
         { name: "Boş", score: "" },
         { name: "Boş", score: "" },
-        { name: "Boş", score: "" }
+        { name: "TEAM 696", score: "" }         // GÜNCELLENDİ: 696 ÇF'ye çıktı (index 7).
     ],
     sf: Array(4).fill(null).map(() => ({ name: "Boş", score: "" })),
     f: Array(2).fill(null).map(() => ({ name: "Boş", score: "" })),
@@ -204,7 +204,7 @@ function updateTournamentState() {
              // Skorlar tamamlanmadıysa, Boş'a çevir 
              if (tournamentData[nextRound.nextSection][nextRound.nextIndex].name !== 'Boş') {
                  // Otomatik korunan takımları koru 
-                 const protectedTeams = ['TEAM Joygame', 'TEAM Ndng', 'TEAM Fofg', 'TEAM Boga', 'TEAM Vesselam']; // Vesselam güncellendi.
+                 const protectedTeams = ['TEAM Joygame', 'TEAM Ndng', 'TEAM Fofg', 'TEAM Boga', 'TEAM Vesselam', 'TEAM 696']; // 696 eklendi.
                  if (!protectedTeams.includes(tournamentData[nextRound.nextSection][nextRound.nextIndex].name)) {
                       tournamentData[nextRound.nextSection][nextRound.nextIndex].name = 'Boş';
                  }
@@ -350,9 +350,11 @@ function attachInputListeners() {
                     if (section === 'qf' && index === 3 && tournamentData[section][index].name === "TEAM Boga") {
                         defaultValue = "TEAM Boga";
                     }
-                    // Vesselam koruması (index 4)
                     if (section === 'qf' && index === 4 && tournamentData[section][index].name === "TEAM Vesselam") { 
                         defaultValue = "TEAM Vesselam";
+                    }
+                    if (section === 'qf' && index === 7 && tournamentData[section][index].name === "TEAM 696") { // 696 koruması
+                        defaultValue = "TEAM 696";
                     }
                     
                     tournamentData[section][index].name = value || defaultValue;
