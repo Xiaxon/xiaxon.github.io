@@ -11,12 +11,12 @@ const INITIAL_DATA = {
         { name: "TEAM Ads", score: "0" }, 
         { name: "TEAM Vesselam", score: "2" }, 
         { name: "TEAM Lca", score: "0" },      
-        { name: "TEAM Dostmeclisi", score: "" },
-        { name: "TEAM Legand", score: "" },
-        { name: "TEAM Tapro", score: "" },
-        { name: "TEAM Trebles", score: "" },
-        { name: "TEAM Dereboyu", score: "0" },  // GÜNCELLENDİ: Dereboyu skor 0
-        { name: "TEAM 696", score: "2" }        // GÜNCELLENDİ: 696 skor 2
+        { name: "TEAM Dostmeclisi", score: "2" }, // GÜNCELLENDİ: Dostmeclisi skor 2
+        { name: "TEAM Legand", score: "0" },     // GÜNCELLENDİ: Legand skor 0
+        { name: "TEAM Tapro", score: "2" },      // GÜNCELLENDİ: Tapro skor 2
+        { name: "TEAM Trebles", score: "0" },    // GÜNCELLENDİ: Trebles skor 0
+        { name: "TEAM Dereboyu", score: "0" },  
+        { name: "TEAM 696", score: "2" }        
     ],
     qf: [
         { name: "TEAM Joygame", score: "" }, 
@@ -24,9 +24,9 @@ const INITIAL_DATA = {
         { name: "TEAM Fofg", score: "" }, 
         { name: "TEAM Boga", score: "" }, 
         { name: "TEAM Vesselam", score: "" }, 
-        { name: "Boş", score: "" },
-        { name: "Boş", score: "" },
-        { name: "TEAM 696", score: "" }         // GÜNCELLENDİ: 696 ÇF'ye çıktı (index 7).
+        { name: "TEAM Dostmeclisi", score: "" }, // GÜNCELLENDİ: Dostmeclisi ÇF'ye çıktı (index 5).
+        { name: "TEAM Tapro", score: "" },       // GÜNCELLENDİ: Tapro ÇF'ye çıktı (index 6).
+        { name: "TEAM 696", score: "" }         
     ],
     sf: Array(4).fill(null).map(() => ({ name: "Boş", score: "" })),
     f: Array(2).fill(null).map(() => ({ name: "Boş", score: "" })),
@@ -204,7 +204,7 @@ function updateTournamentState() {
              // Skorlar tamamlanmadıysa, Boş'a çevir 
              if (tournamentData[nextRound.nextSection][nextRound.nextIndex].name !== 'Boş') {
                  // Otomatik korunan takımları koru 
-                 const protectedTeams = ['TEAM Joygame', 'TEAM Ndng', 'TEAM Fofg', 'TEAM Boga', 'TEAM Vesselam', 'TEAM 696']; // 696 eklendi.
+                 const protectedTeams = ['TEAM Joygame', 'TEAM Ndng', 'TEAM Fofg', 'TEAM Boga', 'TEAM Vesselam', 'TEAM Dostmeclisi', 'TEAM Tapro', 'TEAM 696']; // Dostmeclisi ve Tapro eklendi.
                  if (!protectedTeams.includes(tournamentData[nextRound.nextSection][nextRound.nextIndex].name)) {
                       tournamentData[nextRound.nextSection][nextRound.nextIndex].name = 'Boş';
                  }
@@ -338,23 +338,19 @@ function attachInputListeners() {
                     }
                     
                     // QF korumaları
-                    if (section === 'qf' && index === 0 && tournamentData[section][index].name === "TEAM Joygame") {
-                        defaultValue = "TEAM Joygame";
-                    }
-                    if (section === 'qf' && index === 1 && tournamentData[section][index].name === "TEAM Ndng") {
-                        defaultValue = "TEAM Ndng";
-                    }
-                    if (section === 'qf' && index === 2 && tournamentData[section][index].name === "TEAM Fofg") {
-                        defaultValue = "TEAM Fofg";
-                    }
-                    if (section === 'qf' && index === 3 && tournamentData[section][index].name === "TEAM Boga") {
-                        defaultValue = "TEAM Boga";
-                    }
-                    if (section === 'qf' && index === 4 && tournamentData[section][index].name === "TEAM Vesselam") { 
-                        defaultValue = "TEAM Vesselam";
-                    }
-                    if (section === 'qf' && index === 7 && tournamentData[section][index].name === "TEAM 696") { // 696 koruması
-                        defaultValue = "TEAM 696";
+                    const protectedTeams = {
+                        0: "TEAM Joygame", 
+                        1: "TEAM Ndng", 
+                        2: "TEAM Fofg", 
+                        3: "TEAM Boga", 
+                        4: "TEAM Vesselam", 
+                        5: "TEAM Dostmeclisi", // Yeni koruma
+                        6: "TEAM Tapro",       // Yeni koruma
+                        7: "TEAM 696"
+                    };
+
+                    if (section === 'qf' && protectedTeams[index] && tournamentData[section][index].name === protectedTeams[index]) {
+                        defaultValue = protectedTeams[index];
                     }
                     
                     tournamentData[section][index].name = value || defaultValue;
