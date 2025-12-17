@@ -25,14 +25,14 @@ const INITIAL_DATA = {
         { name: "TEAM Boga", score: "" }, 
         { name: "TEAM Vesselam", score: "" }, 
         { name: "TEAM Dostmeclisi", score: "" }, 
-        { name: "TEAM Tapro", score: "0" },       // GÜNCELLENDİ: QF Skoru 0
-        { name: "TEAM 696", score: "2" }         // GÜNCELLENDİ: QF Skoru 2
+        { name: "TEAM Tapro", score: "2" },       // DÜZELTİLDİ: Tapro kazandı (2)
+        { name: "TEAM 696", score: "0" }         // DÜZELTİLDİ: 696 elendi (0)
     ],
     sf: [
         { name: "Boş", score: "" },
         { name: "Boş", score: "" },
         { name: "Boş", score: "" },
-        { name: "TEAM 696", score: "" }          // GÜNCELLENDİ: 696 Yarı Final'e çıktı (index 3).
+        { name: "TEAM Tapro", score: "" }         // DÜZELTİLDİ: Tapro Yarı Final'e çıktı.
     ],
     f: Array(2).fill(null).map(() => ({ name: "Boş", score: "" })),
     champ: "Boş"
@@ -69,7 +69,7 @@ function switchTab(tabId, btn) {
     if (tabId === 'bracket') setTimeout(drawLines, 50);
 }
 
-// Authentication (Kısa tutuldu)
+// Authentication Logic
 async function handleLogin(event) {
     event.preventDefault();
     const password = document.getElementById('admin-password').value;
@@ -188,12 +188,15 @@ function createTeamCard(team, id) {
 function renderAdminInputs() {
     const sections = ['r1', 'qf', 'sf', 'f'];
     sections.forEach(s => {
-        document.getElementById(`admin-${s}`).innerHTML = tournamentData[s].map((val, i) => `
-            <div class="input-row">
-                <input type="text" value="${val.name.includes('Boş') ? '' : val.name}" placeholder="Takım" data-section="${s}" data-index="${i}" data-field="name">
-                <input type="text" value="${val.score}" placeholder="S" data-section="${s}" data-index="${i}" data-field="score" class="score-input">
-            </div>
-        `).join('');
+        const container = document.getElementById(`admin-${s}`);
+        if(container) {
+            container.innerHTML = tournamentData[s].map((val, i) => `
+                <div class="input-row">
+                    <input type="text" value="${val.name.includes('Boş') ? '' : val.name}" placeholder="Takım" data-section="${s}" data-index="${i}" data-field="name">
+                    <input type="text" value="${val.score}" placeholder="S" data-section="${s}" data-index="${i}" data-field="score" class="score-input">
+                </div>
+            `).join('');
+        }
     });
     document.getElementById('input-champ').value = tournamentData.champ;
 }
