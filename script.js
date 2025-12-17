@@ -11,10 +11,10 @@ const INITIAL_DATA = {
         { name: "TEAM Ads", score: "0" }, 
         { name: "TEAM Vesselam", score: "2" }, 
         { name: "TEAM Lca", score: "0" },      
-        { name: "TEAM Dostmeclisi", score: "2" }, // GÜNCELLENDİ: Dostmeclisi skor 2
-        { name: "TEAM Legand", score: "0" },     // GÜNCELLENDİ: Legand skor 0
-        { name: "TEAM Tapro", score: "2" },      // GÜNCELLENDİ: Tapro skor 2
-        { name: "TEAM Trebles", score: "0" },    // GÜNCELLENDİ: Trebles skor 0
+        { name: "TEAM Dostmeclisi", score: "2" }, 
+        { name: "TEAM Legand", score: "0" },     
+        { name: "TEAM Tapro", score: "2" },      
+        { name: "TEAM Trebles", score: "0" },    
         { name: "TEAM Dereboyu", score: "0" },  
         { name: "TEAM 696", score: "2" }        
     ],
@@ -24,18 +24,22 @@ const INITIAL_DATA = {
         { name: "TEAM Fofg", score: "" }, 
         { name: "TEAM Boga", score: "" }, 
         { name: "TEAM Vesselam", score: "" }, 
-        { name: "TEAM Dostmeclisi", score: "" }, // GÜNCELLENDİ: Dostmeclisi ÇF'ye çıktı (index 5).
-        { name: "TEAM Tapro", score: "" },       // GÜNCELLENDİ: Tapro ÇF'ye çıktı (index 6).
-        { name: "TEAM 696", score: "" }         
+        { name: "TEAM Dostmeclisi", score: "" }, 
+        { name: "TEAM Tapro", score: "0" },       // GÜNCELLENDİ: QF Skoru 0
+        { name: "TEAM 696", score: "2" }         // GÜNCELLENDİ: QF Skoru 2
     ],
-    sf: Array(4).fill(null).map(() => ({ name: "Boş", score: "" })),
+    sf: [
+        { name: "Boş", score: "" },
+        { name: "Boş", score: "" },
+        { name: "Boş", score: "" },
+        { name: "TEAM 696", score: "" }          // GÜNCELLENDİ: 696 Yarı Final'e çıktı (index 3).
+    ],
     f: Array(2).fill(null).map(() => ({ name: "Boş", score: "" })),
     champ: "Boş"
 };
 
 const STORAGE_KEY = "cs16_tournament_data";
 const AUTH_KEY = "cs16_admin_auth";
-// SHA-256 Hash of "ravza2025."
 const AUTH_HASH = "6eb38a9a2d9f2b5780a8f3b09b9d9011b692993d1b87041c150f736068a6eb59";
 
 let tournamentData = { ...INITIAL_DATA };
@@ -49,7 +53,6 @@ document.addEventListener('DOMContentLoaded', () => {
     checkAuth();
     lucide.createIcons();
     
-    // Resize listener for svg lines
     window.addEventListener('resize', () => {
         if(document.getElementById('bracket').classList.contains('active')) {
             drawLines();
@@ -57,49 +60,34 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// Tab Switching (Kısa tutuldu)
+// Tab Switching
 function switchTab(tabId, btn) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
-    
     document.getElementById(tabId).classList.add('active');
     btn.classList.add('active');
-    
-    if (tabId === 'bracket') {
-        setTimeout(drawLines, 50);
-    }
+    if (tabId === 'bracket') setTimeout(drawLines, 50);
 }
 
-// Authentication Logic (Kısa tutuldu)
+// Authentication (Kısa tutuldu)
 async function handleLogin(event) {
     event.preventDefault();
-    const passwordInput = document.getElementById('admin-password');
-    const errorMsg = document.getElementById('login-error');
-    const password = passwordInput.value;
-
+    const password = document.getElementById('admin-password').value;
     const msgBuffer = new TextEncoder().encode(password);
     const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
 
     if (hashHex === AUTH_HASH) {
         sessionStorage.setItem(AUTH_KEY, 'true');
         showAdminContent();
-        passwordInput.value = '';
-        errorMsg.textContent = '';
     } else {
-        errorMsg.textContent = 'Hatalı şifre!';
-        passwordInput.classList.add('shake');
-        setTimeout(() => passwordInput.classList.remove('shake'), 500);
+        document.getElementById('login-error').textContent = 'Hatalı şifre!';
     }
 }
 
 function checkAuth() {
-    if (sessionStorage.getItem(AUTH_KEY) === 'true') {
-        showAdminContent();
-    } else {
-        showLogin();
-    }
+    if (sessionStorage.getItem(AUTH_KEY) === 'true') showAdminContent();
+    else showLogin();
 }
 
 function showAdminContent() {
@@ -112,24 +100,12 @@ function showLogin() {
     document.getElementById('admin-content').classList.add('hidden');
 }
 
-function logout() {
-    sessionStorage.removeItem(AUTH_KEY);
-    showLogin();
-}
-
 // Data Management
 function loadData() {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
         try {
-            const parsed = JSON.parse(saved);
-            tournamentData = {
-                r1: parsed.r1 || INITIAL_DATA.r1,
-                qf: parsed.qf || INITIAL_DATA.qf,
-                sf: parsed.sf || INITIAL_DATA.sf,
-                f: parsed.f || INITIAL_DATA.f,
-                champ: parsed.champ || "TBD"
-            };
+            tournamentData = JSON.parse(saved);
         } catch (e) {
             tournamentData = JSON.parse(JSON.stringify(INITIAL_DATA));
         }
@@ -140,14 +116,11 @@ function loadData() {
 
 function saveData(btn) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(tournamentData));
-    
     renderBracket();
-    
     const originalText = btn.innerHTML;
     btn.innerHTML = '<i data-lucide="check"></i> Kaydedildi';
     btn.style.background = '#16a34a';
     lucide.createIcons();
-    
     setTimeout(() => {
         btn.innerHTML = originalText;
         btn.style.background = '';
@@ -155,209 +128,84 @@ function saveData(btn) {
     }, 2000);
 }
 
-// --- KAZANAN İLERLETME MANTIĞI ---
+// --- OTOMATİK İLERLETME MANTIĞI ---
 function getWinner(team1, team2) {
-    const score1 = parseInt(team1.score);
-    const score2 = parseInt(team2.score);
-
-    if (isNaN(score1) || isNaN(score2) || score1 === score2) return null;
-    
-    if (score1 > score2) return team1.name;
-    if (score2 > score1) return team2.name;
-    
-    return null;
-}
-
-function getNextRoundInfo(currentSection, currentIndex) {
-    let nextSection, nextIndex;
-
-    if (currentSection === 'r1') {
-        nextSection = 'qf';
-        nextIndex = Math.floor(currentIndex / 2);
-    } else if (currentSection === 'qf') {
-        nextSection = 'sf';
-        nextIndex = Math.floor(currentIndex / 2);
-    } else if (currentSection === 'sf') {
-        nextSection = 'f';
-        nextIndex = Math.floor(currentIndex / 2);
-    } else {
-        return null; 
-    }
-    return { nextSection, nextIndex };
+    const s1 = parseInt(team1.score);
+    const s2 = parseInt(team2.score);
+    if (isNaN(s1) || isNaN(s2) || s1 === s2) return null;
+    return s1 > s2 ? team1.name : team2.name;
 }
 
 function updateTournamentState() {
-    // R1 -> QF İlerletme
-    for (let i = 0; i < tournamentData.r1.length; i += 2) {
-        const team1 = tournamentData.r1[i];
-        const team2 = tournamentData.r1[i + 1];
-        
-        const winnerName = getWinner(team1, team2);
-        const nextRound = getNextRoundInfo('r1', i);
+    const stages = ['r1', 'qf', 'sf'];
+    const nextStages = { 'r1': 'qf', 'qf': 'sf', 'sf': 'f' };
 
-        if (winnerName && nextRound) {
-            // Sadece Boş ise veya zaten galip olan takım ise güncelle
-            if (tournamentData[nextRound.nextSection][nextRound.nextIndex].name === 'Boş' || tournamentData[nextRound.nextSection][nextRound.nextIndex].name === winnerName) {
-                 tournamentData[nextRound.nextSection][nextRound.nextIndex].name = winnerName;
+    stages.forEach(stage => {
+        for (let i = 0; i < tournamentData[stage].length; i += 2) {
+            const winner = getWinner(tournamentData[stage][i], tournamentData[stage][i+1]);
+            const nextIdx = Math.floor(i / 2);
+            const nextStage = nextStages[stage];
+
+            if (winner) {
+                if (tournamentData[nextStage][nextIdx].name === 'Boş' || tournamentData[nextStage][nextIdx].name === winner) {
+                    tournamentData[nextStage][nextIdx].name = winner;
+                }
             }
-        } else if (nextRound) {
-             // Skorlar tamamlanmadıysa, Boş'a çevir 
-             if (tournamentData[nextRound.nextSection][nextRound.nextIndex].name !== 'Boş') {
-                 // Otomatik korunan takımları koru 
-                 const protectedTeams = ['TEAM Joygame', 'TEAM Ndng', 'TEAM Fofg', 'TEAM Boga', 'TEAM Vesselam', 'TEAM Dostmeclisi', 'TEAM Tapro', 'TEAM 696']; // Dostmeclisi ve Tapro eklendi.
-                 if (!protectedTeams.includes(tournamentData[nextRound.nextSection][nextRound.nextIndex].name)) {
-                      tournamentData[nextRound.nextSection][nextRound.nextIndex].name = 'Boş';
-                 }
-             }
         }
-    }
+    });
 }
-// --- KAZANAN İLERLETME MANTIĞI SONU ---
-
 
 // Rendering
 function renderBracket() {
-    updateTournamentState(); 
+    updateTournamentState();
     
-    // Fill Round of 16
-    const r1List = document.getElementById('r1-list');
-    r1List.innerHTML = tournamentData.r1.map((team, i) => createTeamCard(team, `r1-${i}`)).join('');
-
-    // Fill Quarter Finals
-    const qfList = document.getElementById('qf-list');
-    qfList.innerHTML = tournamentData.qf.map((team, i) => createTeamCard(team, `qf-${i}`)).join('');
-
-    // Fill Semi Finals
-    const sfList = document.getElementById('sf-list');
-    sfList.innerHTML = tournamentData.sf.map((team, i) => createTeamCard(team, `sf-${i}`)).join('');
-
-    // Fill Finals
-    const fList = document.getElementById('f-list');
-    fList.innerHTML = tournamentData.f.map((team, i) => createTeamCard(team, `f-${i}`)).join('');
-
-    // Fill Champion
+    document.getElementById('r1-list').innerHTML = tournamentData.r1.map((t, i) => createTeamCard(t, `r1-${i}`)).join('');
+    document.getElementById('qf-list').innerHTML = tournamentData.qf.map((t, i) => createTeamCard(t, `qf-${i}`)).join('');
+    document.getElementById('sf-list').innerHTML = tournamentData.sf.map((t, i) => createTeamCard(t, `sf-${i}`)).join('');
+    document.getElementById('f-list').innerHTML = tournamentData.f.map((t, i) => createTeamCard(t, `f-${i}`)).join('');
     document.getElementById('champion-display').textContent = tournamentData.champ;
 
-    // Draw lines
     setTimeout(drawLines, 50);
 }
 
 function createTeamCard(team, id) {
-    const name = typeof team === 'string' ? team : team.name;
-    const score = typeof team === 'string' ? '' : team.score;
-    
-    // 'Boş' veya 'TBD' değilse doldurulmuş kabul et
+    const name = team.name;
+    const score = team.score;
     let isFilled = name !== "Boş" && name !== "TBD";
-    
-    // Kaybeden mantığı: Skoru "0" olan ve "Boş" olmayan takımların karartılması
     const isLoser = (score === "0" || score === "00") && name !== "Boş";
     
-    let passiveStyle = ''; // Karartma stili
-    
-    if (isLoser) {
-        isFilled = false; // Kırmızı vurguyu kaldır
-        passiveStyle = 'style="opacity: 0.6;"'; // Karartma (sönükleştirme) stili
-    }
-    
-    // Skor varsa göster
-    const scoreDisplay = score ? ` <span class="team-score">${score}</span>` : '';
-    
+    let style = isLoser ? 'style="opacity: 0.5;"' : '';
+    if (isLoser) isFilled = false;
+
     return `
-        <div id="${id}" class="team-card ${isFilled ? 'filled' : ''}" ${passiveStyle}>
-            <span class="team-name">${name}</span>${scoreDisplay}
+        <div id="${id}" class="team-card ${isFilled ? 'filled' : ''}" ${style}>
+            <span class="team-name">${name}</span>
+            ${score ? `<span class="team-score">${score}</span>` : ''}
         </div>
     `;
 }
 
-
 function renderAdminInputs() {
-    // R1 Inputs
-    const r1Container = document.getElementById('admin-r1');
-    r1Container.innerHTML = tournamentData.r1.map((val, i) => `
-        <div class="input-row">
-            <span class="input-num">${String(i+1).padStart(2, '0')}</span>
-            <input type="text" value="${val.name === 'Boş' || val.name === 'TBD' ? '' : val.name}" placeholder="Takım Adı" data-section="r1" data-index="${i}" data-field="name">
-            <input type="text" value="${val.score}" placeholder="Skor" data-section="r1" data-index="${i}" data-field="score" class="score-input">
-        </div>
-    `).join('');
-
-    // QF Inputs
-    const qfContainer = document.getElementById('admin-qf');
-    qfContainer.innerHTML = tournamentData.qf.map((val, i) => `
-        <div class="input-row-qf">
-            <input type="text" value="${val.name === 'Boş' || val.name === 'TBD' ? '' : val.name}" placeholder="ÇF ${i+1}" data-section="qf" data-index="${i}" data-field="name">
-            <input type="text" value="${val.score}" placeholder="Skor" data-section="qf" data-index="${i}" data-field="score" class="score-input">
-        </div>
-    `).join('');
-
-    // SF Inputs (Kısa tutuldu)
-    const sfContainer = document.getElementById('admin-sf');
-    sfContainer.innerHTML = tournamentData.sf.map((val, i) => `
-        <div class="input-row-sf">
-            <input type="text" value="${val.name === 'TBD' ? '' : val.name}" placeholder="YF ${i+1}" data-section="sf" data-index="${i}" data-field="name">
-            <input type="text" value="${val.score}" placeholder="Skor" data-section="sf" data-index="${i}" data-field="score" class="score-input">
-        </div>
-    `).join('');
-
-    // F Inputs (Kısa tutuldu)
-    const fContainer = document.getElementById('admin-f');
-    fContainer.innerHTML = tournamentData.f.map((val, i) => `
-        <div class="input-row-f">
-            <input type="text" value="${val.name === 'TBD' ? '' : val.name}" placeholder="Finalist ${i+1}" data-section="f" data-index="${i}" data-field="name">
-            <input type="text" value="${val.score}" placeholder="Skor" data-section="f" data-index="${i}" data-field="score" class="score-input">
-        </div>
-    `).join('');
-
-    // Champ Input
-    const champInput = document.getElementById('input-champ');
-    champInput.value = tournamentData.champ === 'TBD' ? '' : tournamentData.champ;
-    champInput.setAttribute('data-section', 'champ');
+    const sections = ['r1', 'qf', 'sf', 'f'];
+    sections.forEach(s => {
+        document.getElementById(`admin-${s}`).innerHTML = tournamentData[s].map((val, i) => `
+            <div class="input-row">
+                <input type="text" value="${val.name.includes('Boş') ? '' : val.name}" placeholder="Takım" data-section="${s}" data-index="${i}" data-field="name">
+                <input type="text" value="${val.score}" placeholder="S" data-section="${s}" data-index="${i}" data-field="score" class="score-input">
+            </div>
+        `).join('');
+    });
+    document.getElementById('input-champ').value = tournamentData.champ;
 }
 
 function attachInputListeners() {
     document.addEventListener('input', (e) => {
-        if (e.target.tagName === 'INPUT' && e.target.dataset.section) {
-            const section = e.target.dataset.section;
-            const index = parseInt(e.target.dataset.index);
-            const field = e.target.dataset.field;
-            const value = e.target.value;
+        if (e.target.dataset.section) {
+            const { section, index, field } = e.target.dataset;
+            const val = e.target.value;
 
-            if (section === 'champ') {
-                tournamentData.champ = value || "TBD";
-            } else {
-                if (field === 'name') {
-                    // Otomatik atanan isimleri koruma mantığı
-                    let defaultValue = "TBD";
-                    
-                    // R1 korumaları
-                    if (section === 'r1' && index === 0 && tournamentData[section][index].name === "TEAM Champs") {
-                         defaultValue = "TEAM Champs";
-                    }
-                    if (section === 'r1' && index === 5 && tournamentData[section][index].name === "BAY Geçti") {
-                         defaultValue = "BAY Geçti";
-                    }
-                    
-                    // QF korumaları
-                    const protectedTeams = {
-                        0: "TEAM Joygame", 
-                        1: "TEAM Ndng", 
-                        2: "TEAM Fofg", 
-                        3: "TEAM Boga", 
-                        4: "TEAM Vesselam", 
-                        5: "TEAM Dostmeclisi", // Yeni koruma
-                        6: "TEAM Tapro",       // Yeni koruma
-                        7: "TEAM 696"
-                    };
-
-                    if (section === 'qf' && protectedTeams[index] && tournamentData[section][index].name === protectedTeams[index]) {
-                        defaultValue = protectedTeams[index];
-                    }
-                    
-                    tournamentData[section][index].name = value || defaultValue;
-                } else if (field === 'score') {
-                    tournamentData[section][index].score = value;
-                }
-            }
+            if (section === 'champ') tournamentData.champ = val || "Boş";
+            else tournamentData[section][index][field] = val || (field === 'name' ? 'Boş' : '');
 
             localStorage.setItem(STORAGE_KEY, JSON.stringify(tournamentData));
             renderBracket();
@@ -368,70 +216,38 @@ function attachInputListeners() {
 function drawLines() {
     const svg = document.getElementById('bracketSvg');
     const container = document.querySelector('.bracket-container');
-    
-    if (!container || !svg) return;
-
+    if (!svg || !container) return;
     svg.innerHTML = '';
     svg.setAttribute('width', container.scrollWidth);
     svg.setAttribute('height', container.scrollHeight);
 
-    const containerRect = container.getBoundingClientRect();
-    const scrollLeft = container.scrollLeft;
-    const scrollTop = container.scrollTop;
-
     const stages = [
-        { prefix: 'r1', count: 16 },
-        { prefix: 'qf', count: 8 },
-        { prefix: 'sf', count: 4 },
-        { prefix: 'f', count: 2 }
+        { p: 'r1', c: 16 }, { p: 'qf', c: 8 }, { p: 'sf', c: 4 }, { p: 'f', c: 2 }
     ];
 
     for (let s = 0; s < stages.length - 1; s++) {
-        const currentStage = stages[s];
-        const nextStage = stages[s+1];
-        const ratio = currentStage.count / nextStage.count;
-
-        for (let i = 0; i < nextStage.count; i++) {
-            const startIdx = i * ratio;
-            const endIdx = startIdx + ratio;
-
-            const el1 = document.getElementById(`${currentStage.prefix}-${startIdx}`);
-            const el2 = document.getElementById(`${currentStage.prefix}-${endIdx - 1}`);
-            const nextEl = document.getElementById(`${nextStage.prefix}-${i}`);
-
+        for (let i = 0; i < stages[s+1].c; i++) {
+            const el1 = document.getElementById(`${stages[s].p}-${i*2}`);
+            const el2 = document.getElementById(`${stages[s].p}-${i*2+1}`);
+            const nextEl = document.getElementById(`${stages[s+1].p}-${i}`);
             if (!el1 || !el2 || !nextEl) continue;
 
-            const rect1 = el1.getBoundingClientRect();
-            const rect2 = el2.getBoundingClientRect();
-            const nextRect = nextEl.getBoundingClientRect();
+            const r1 = el1.getBoundingClientRect();
+            const r2 = el2.getBoundingClientRect();
+            const rn = nextEl.getBoundingClientRect();
+            const cR = container.getBoundingClientRect();
 
-            const x1 = rect1.right - containerRect.left + scrollLeft;
-            const y1 = rect1.top - containerRect.top + scrollTop + rect1.height / 2;
-            const y2 = rect2.top - containerRect.top + scrollTop + rect2.height / 2;
-            
-            const nextX = nextRect.left - containerRect.left + scrollLeft;
-            const nextY = nextRect.top - containerRect.top + scrollTop + nextRect.height / 2;
+            const x1 = r1.right - cR.left + container.scrollLeft;
+            const y1 = r1.top - cR.top + container.scrollTop + r1.height/2;
+            const y2 = r2.top - cR.top + container.scrollTop + r2.height/2;
+            const nx = rn.left - cR.left + container.scrollLeft;
+            const ny = rn.top - cR.top + container.scrollTop + rn.height/2;
+            const mx = x1 + (nx - x1) / 2;
 
-            const midX = x1 + (nextX - x1) / 2;
-
-            // Create Path
             const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-            const d = `
-                M ${x1} ${y1}
-                L ${midX} ${y1}
-                L ${midX} ${y2}
-                L ${x1} ${y2}
-                M ${midX} ${(y1 + y2) / 2}
-                L ${nextX} ${(y1 + y2) / 2}
-                L ${nextX} ${nextY}
-            `;
-            
-            path.setAttribute('d', d);
+            path.setAttribute('d', `M${x1} ${y1} L${mx} ${y1} L${mx} ${y2} L${x1} ${y2} M${mx} ${(y1+y2)/2} L${nx} ${ny}`);
             path.setAttribute('stroke', 'rgba(220, 38, 38, 0.4)');
-            path.setAttribute('stroke-width', '1.5');
             path.setAttribute('fill', 'none');
-            path.setAttribute('class', 'line-shadow');
-            
             svg.appendChild(path);
         }
     }
