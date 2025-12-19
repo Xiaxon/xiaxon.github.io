@@ -23,16 +23,16 @@ const INITIAL_DATA = {
         { name: "TEAM Ndng", score: "" },     
         { name: "TEAM Fofg", score: "" }, 
         { name: "TEAM Boga", score: "" }, 
-        { name: "TEAM Vesselam", score: "" }, 
-        { name: "TEAM Dostmeclisi", score: "" }, 
-        { name: "TEAM Tapro", score: "2" },       // DÜZELTİLDİ: Tapro kazandı (2)
-        { name: "TEAM 696", score: "0" }         // DÜZELTİLDİ: 696 elendi (0)
+        { name: "TEAM Vesselam", score: "0" },    // GÜNCELLENDİ: Vesselam elendi (0)
+        { name: "TEAM Dostmeclisi", score: "2" }, // GÜNCELLENDİ: Dostmeclisi kazandı (2)
+        { name: "TEAM Tapro", score: "2" },       
+        { name: "TEAM 696", score: "0" }         
     ],
     sf: [
         { name: "Boş", score: "" },
         { name: "Boş", score: "" },
-        { name: "Boş", score: "" },
-        { name: "TEAM Tapro", score: "" }         // DÜZELTİLDİ: Tapro Yarı Final'e çıktı.
+        { name: "TEAM Dostmeclisi", score: "" }, // GÜNCELLENDİ: Dostmeclisi Yarı Final'de (index 2).
+        { name: "TEAM Tapro", score: "" }         
     ],
     f: Array(2).fill(null).map(() => ({ name: "Boş", score: "" })),
     champ: "Boş"
