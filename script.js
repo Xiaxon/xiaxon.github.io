@@ -19,18 +19,18 @@ const INITIAL_DATA = {
         { name: "TEAM 696", score: "2" }        
     ],
     qf: [
-        { name: "TEAM Joygame", score: "" }, 
-        { name: "TEAM Ndng", score: "" },     
-        { name: "TEAM Fofg", score: "0" },        // GÜNCELLENDİ: Fofg elendi (0)
-        { name: "TEAM Boga", score: "2" },        // GÜNCELLENDİ: Boga kazandı (2)
+        { name: "TEAM Joygame", score: "0" },     // GÜNCELLENDİ: Joygame elendi (0)
+        { name: "TEAM Ndng", score: "2" },        // GÜNCELLENDİ: Ndng kazandı (2)
+        { name: "TEAM Fofg", score: "0" }, 
+        { name: "TEAM Boga", score: "2" }, 
         { name: "TEAM Vesselam", score: "0" }, 
         { name: "TEAM Dostmeclisi", score: "2" }, 
         { name: "TEAM Tapro", score: "2" },       
         { name: "TEAM 696", score: "0" }         
     ],
     sf: [
-        { name: "Boş", score: "" },
-        { name: "TEAM Boga", score: "" },         // GÜNCELLENDİ: Boga Yarı Final'de (index 1).
+        { name: "TEAM Ndng", score: "" },         // GÜNCELLENDİ: Ndng Yarı Final'de (index 0).
+        { name: "TEAM Boga", score: "" },         
         { name: "TEAM Dostmeclisi", score: "" }, 
         { name: "TEAM Tapro", score: "" }         
     ],
