@@ -31,12 +31,12 @@ const INITIAL_DATA = {
     sf: [
         { name: "TEAM Ndng", score: "0" },         
         { name: "TEAM Boga", score: "2" },         
-        { name: "TEAM Dostmeclisi", score: "2" }, // GÜNCELLENDİ: Dostmeclisi kazandı (2)
-        { name: "TEAM Tapro", score: "1" }        // GÜNCELLENDİ: Tapro elendi (1)
+        { name: "TEAM Dostmeclisi", score: "" },  // DÜZELTİLDİ: Skor temizlendi
+        { name: "TEAM Tapro", score: "" }         // DÜZELTİLDİ: Skor temizlendi
     ],
     f: [
         { name: "TEAM Boga", score: "" },         
-        { name: "TEAM Dostmeclisi", score: "" }   // GÜNCELLENDİ: Dostmeclisi Finalde!
+        { name: "Boş", score: "" }                // DÜZELTİLDİ: Maç oynanmadığı için boş
     ],
     champ: "Boş"
 };
@@ -175,7 +175,8 @@ function createTeamCard(team, id) {
     const name = team.name;
     const score = team.score;
     let isFilled = name !== "Boş" && name !== "TBD";
-    const isLoser = (score === "0" || score === "1" || score === "00") && name !== "Boş" && (id.includes('sf') || id.includes('qf'));
+    // Sadece skor kesinleşmişse (0 veya üstü sayı varsa) ve kaybedense opaklık düşür
+    const isLoser = score !== "" && (score === "0" || score === "1") && name !== "Boş" && (id.includes('sf') || id.includes('qf'));
     
     let style = isLoser ? 'style="opacity: 0.5;"' : '';
     if (isLoser) isFilled = false;
@@ -183,7 +184,7 @@ function createTeamCard(team, id) {
     return `
         <div id="${id}" class="team-card ${isFilled ? 'filled' : ''}" ${style}>
             <span class="team-name">${name}</span>
-            ${score ? `<span class="team-score">${score}</span>` : ''}
+            ${score !== "" ? `<span class="team-score">${score}</span>` : ''}
         </div>
     `;
 }
