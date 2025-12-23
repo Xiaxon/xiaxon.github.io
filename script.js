@@ -19,8 +19,8 @@ const INITIAL_DATA = {
         { name: "TEAM 696", score: "2" }        
     ],
     qf: [
-        { name: "TEAM Joygame", score: "0" },     // GÜNCELLENDİ: Joygame elendi (0)
-        { name: "TEAM Ndng", score: "2" },        // GÜNCELLENDİ: Ndng kazandı (2)
+        { name: "TEAM Joygame", score: "0" },     
+        { name: "TEAM Ndng", score: "2" },        
         { name: "TEAM Fofg", score: "0" }, 
         { name: "TEAM Boga", score: "2" }, 
         { name: "TEAM Vesselam", score: "0" }, 
@@ -29,12 +29,15 @@ const INITIAL_DATA = {
         { name: "TEAM 696", score: "0" }         
     ],
     sf: [
-        { name: "TEAM Ndng", score: "" },         // GÜNCELLENDİ: Ndng Yarı Final'de (index 0).
-        { name: "TEAM Boga", score: "" },         
-        { name: "TEAM Dostmeclisi", score: "" }, 
-        { name: "TEAM Tapro", score: "" }         
+        { name: "TEAM Ndng", score: "0" },         
+        { name: "TEAM Boga", score: "2" },         
+        { name: "TEAM Dostmeclisi", score: "2" }, // GÜNCELLENDİ: Dostmeclisi kazandı (2)
+        { name: "TEAM Tapro", score: "1" }        // GÜNCELLENDİ: Tapro elendi (1)
     ],
-    f: Array(2).fill(null).map(() => ({ name: "Boş", score: "" })),
+    f: [
+        { name: "TEAM Boga", score: "" },         
+        { name: "TEAM Dostmeclisi", score: "" }   // GÜNCELLENDİ: Dostmeclisi Finalde!
+    ],
     champ: "Boş"
 };
 
@@ -172,7 +175,7 @@ function createTeamCard(team, id) {
     const name = team.name;
     const score = team.score;
     let isFilled = name !== "Boş" && name !== "TBD";
-    const isLoser = (score === "0" || score === "00") && name !== "Boş";
+    const isLoser = (score === "0" || score === "1" || score === "00") && name !== "Boş" && (id.includes('sf') || id.includes('qf'));
     
     let style = isLoser ? 'style="opacity: 0.5;"' : '';
     if (isLoser) isFilled = false;
