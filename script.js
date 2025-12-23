@@ -29,14 +29,14 @@ const INITIAL_DATA = {
         { name: "TEAM 696", score: "0" }         
     ],
     sf: [
-        { name: "TEAM Ndng", score: "0" },         
-        { name: "TEAM Boga", score: "2" },         
-        { name: "TEAM Dostmeclisi", score: "" },  // DÜZELTİLDİ: Skor temizlendi
-        { name: "TEAM Tapro", score: "" }         // DÜZELTİLDİ: Skor temizlendi
+        { name: "TEAM Ndng", score: "1" },         // GÜNCELLENDİ: Ndng skoru 1 (2-1 yenildi)
+        { name: "TEAM Boga", score: "2" },         // Boga kazandı (2)
+        { name: "TEAM Dostmeclisi", score: "" }, 
+        { name: "TEAM Tapro", score: "" }         
     ],
     f: [
-        { name: "TEAM Boga", score: "" },         
-        { name: "Boş", score: "" }                // DÜZELTİLDİ: Maç oynanmadığı için boş
+        { name: "TEAM Boga", score: "" },         // Boga Finalde
+        { name: "Boş", score: "" }
     ],
     champ: "Boş"
 };
@@ -175,7 +175,7 @@ function createTeamCard(team, id) {
     const name = team.name;
     const score = team.score;
     let isFilled = name !== "Boş" && name !== "TBD";
-    // Sadece skor kesinleşmişse (0 veya üstü sayı varsa) ve kaybedense opaklık düşür
+    // Maç skoru belli olan ve kaybeden takımın (sf ve qf için) opacity'sini düşür
     const isLoser = score !== "" && (score === "0" || score === "1") && name !== "Boş" && (id.includes('sf') || id.includes('qf'));
     
     let style = isLoser ? 'style="opacity: 0.5;"' : '';
