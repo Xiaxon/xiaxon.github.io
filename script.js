@@ -13,7 +13,7 @@ const INITIAL_DATA = {
         { name: "TEAM Lca", score: "0" },      
         { name: "TEAM Dostmeclisi", score: "2" }, 
         { name: "TEAM Legand", score: "0" },     
-        { name: "TEAM Tapro", score: "2" },      
+        { name: "TEAM Dfpro", score: "2" },      // GÜNCELLENDİ: Tapro -> Dfpro
         { name: "TEAM Trebles", score: "0" },    
         { name: "TEAM Dereboyu", score: "0" },  
         { name: "TEAM 696", score: "2" }        
@@ -25,17 +25,17 @@ const INITIAL_DATA = {
         { name: "TEAM Boga", score: "2" }, 
         { name: "TEAM Vesselam", score: "0" }, 
         { name: "TEAM Dostmeclisi", score: "2" }, 
-        { name: "TEAM Tapro", score: "2" },       
+        { name: "TEAM Dfpro", score: "2" },       // GÜNCELLENDİ: Tapro -> Dfpro
         { name: "TEAM 696", score: "0" }         
     ],
     sf: [
-        { name: "TEAM Ndng", score: "1" },         // GÜNCELLENDİ: Ndng skoru 1 (2-1 yenildi)
-        { name: "TEAM Boga", score: "2" },         // Boga kazandı (2)
+        { name: "TEAM Ndng", score: "1" },         
+        { name: "TEAM Boga", score: "2" },         
         { name: "TEAM Dostmeclisi", score: "" }, 
-        { name: "TEAM Tapro", score: "" }         
+        { name: "TEAM Dfpro", score: "" }         // GÜNCELLENDİ: Tapro -> Dfpro
     ],
     f: [
-        { name: "TEAM Boga", score: "" },         // Boga Finalde
+        { name: "TEAM Boga", score: "" },         
         { name: "Boş", score: "" }
     ],
     champ: "Boş"
@@ -162,21 +162,43 @@ function updateTournamentState() {
 function renderBracket() {
     updateTournamentState();
     
-    document.getElementById('r1-list').innerHTML = tournamentData.r1.map((t, i) => createTeamCard(t, `r1-${i}`)).join('');
-    document.getElementById('qf-list').innerHTML = tournamentData.qf.map((t, i) => createTeamCard(t, `qf-${i}`)).join('');
-    document.getElementById('sf-list').innerHTML = tournamentData.sf.map((t, i) => createTeamCard(t, `sf-${i}`)).join('');
-    document.getElementById('f-list').innerHTML = tournamentData.f.map((t, i) => createTeamCard(t, `f-${i}`)).join('');
+    document.getElementById('r1-list').innerHTML = tournamentData.r1.map((t, i) => createTeamCard(t, `r1-${i}`, 'r1')).join('');
+    document.getElementById('qf-list').innerHTML = tournamentData.qf.map((t, i) => createTeamCard(t, `qf-${i}`, 'qf')).join('');
+    document.getElementById('sf-list').innerHTML = tournamentData.sf.map((t, i) => createTeamCard(t, `sf-${i}`, 'sf')).join('');
+    document.getElementById('f-list').innerHTML = tournamentData.f.map((t, i) => createTeamCard(t, `f-${i}`, 'f')).join('');
     document.getElementById('champion-display').textContent = tournamentData.champ;
+
+    // --- KUTULARIN ALTINA NOT EKLEME ---
+    const container = document.querySelector('.bracket-container');
+    if (container) {
+        let noteEl = document.getElementById('bracket-footer-note');
+        if (!noteEl) {
+            noteEl = document.createElement('div');
+            noteEl.id = 'bracket-footer-note';
+            noteEl.style = 'width: 100%; text-align: center; margin-top: 30px; padding: 10px; color: #9ca3af; font-size: 0.85rem; border-top: 1px solid #374151; font-style: italic;';
+            container.appendChild(noteEl);
+        }
+        noteEl.innerHTML = '<i class="fas fa-info-circle"></i> Not: TEAM Tapro ismi TEAM Dfpro olarak güncellenmiştir.';
+    }
 
     setTimeout(drawLines, 50);
 }
 
-function createTeamCard(team, id) {
+function createTeamCard(team, id, stage) {
     const name = team.name;
     const score = team.score;
     let isFilled = name !== "Boş" && name !== "TBD";
-    // Maç skoru belli olan ve kaybeden takımın (sf ve qf için) opacity'sini düşür
-    const isLoser = score !== "" && (score === "0" || score === "1") && name !== "Boş" && (id.includes('sf') || id.includes('qf'));
+    
+    let isLoser = false;
+    const idx = parseInt(id.split('-')[1]);
+    const pairIdx = idx % 2 === 0 ? idx + 1 : idx - 1;
+    const opponent = tournamentData[stage] ? tournamentData[stage][pairIdx] : null;
+
+    if (opponent && score !== "" && opponent.score !== "") {
+        if (parseInt(score) < parseInt(opponent.score)) {
+            isLoser = true;
+        }
+    }
     
     let style = isLoser ? 'style="opacity: 0.5;"' : '';
     if (isLoser) isFilled = false;
