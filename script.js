@@ -11,9 +11,9 @@ const INITIAL_DATA = {
         { name: "TEAM Ads", score: "0" }, 
         { name: "TEAM Vesselam", score: "2" }, 
         { name: "TEAM Lca", score: "0" },      
-        { name: "TEAM Dostmeclisi", score: "2" }, 
+        { name: "TEAM Dmpro", score: "2" },      // GÜNCELLENDİ: Dostmeclisi -> Dmpro
         { name: "TEAM Legand", score: "0" },     
-        { name: "TEAM Dfpro", score: "2" },      // GÜNCELLENDİ: Tapro -> Dfpro
+        { name: "TEAM Dfpro", score: "2" },      
         { name: "TEAM Trebles", score: "0" },    
         { name: "TEAM Dereboyu", score: "0" },  
         { name: "TEAM 696", score: "2" }        
@@ -24,19 +24,19 @@ const INITIAL_DATA = {
         { name: "TEAM Fofg", score: "0" }, 
         { name: "TEAM Boga", score: "2" }, 
         { name: "TEAM Vesselam", score: "0" }, 
-        { name: "TEAM Dostmeclisi", score: "2" }, 
-        { name: "TEAM Dfpro", score: "2" },       // GÜNCELLENDİ: Tapro -> Dfpro
+        { name: "TEAM Dmpro", score: "2" },      // GÜNCELLENDİ: Dostmeclisi -> Dmpro
+        { name: "TEAM Dfpro", score: "2" },       
         { name: "TEAM 696", score: "0" }         
     ],
     sf: [
         { name: "TEAM Ndng", score: "1" },         
         { name: "TEAM Boga", score: "2" },         
-        { name: "TEAM Dostmeclisi", score: "" }, 
-        { name: "TEAM Dfpro", score: "" }         // GÜNCELLENDİ: Tapro -> Dfpro
+        { name: "TEAM Dmpro", score: "2" },      // GÜNCELLENDİ: Skor 2-0 kazandı
+        { name: "TEAM Dfpro", score: "0" }       // GÜNCELLENDİ: Skor 2-0 kaybetti
     ],
     f: [
         { name: "TEAM Boga", score: "" },         
-        { name: "Boş", score: "" }
+        { name: "TEAM Dmpro", score: "" }        // GÜNCELLENDİ: Dmpro Finalde!
     ],
     champ: "Boş"
 };
@@ -178,7 +178,7 @@ function renderBracket() {
             noteEl.style = 'width: 100%; text-align: center; margin-top: 30px; padding: 10px; color: #9ca3af; font-size: 0.85rem; border-top: 1px solid #374151; font-style: italic;';
             container.appendChild(noteEl);
         }
-        noteEl.innerHTML = '<i class="fas fa-info-circle"></i> Not: TEAM Tapro ismi TEAM Dfpro olarak güncellenmiştir.';
+        noteEl.innerHTML = '<i class="fas fa-info-circle"></i> Not: Tapro -> Dfpro ve Dostmeclisi -> Dmpro olarak güncellenmiştir.';
     }
 
     setTimeout(drawLines, 50);
