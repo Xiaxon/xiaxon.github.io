@@ -1,4 +1,4 @@
-// Data State
+// Data State - ŞAMPİYON: TEAM DMPRO
 const INITIAL_DATA = {
     r1: [
         { name: "TEAM Champs", score: "0" }, 
@@ -11,7 +11,7 @@ const INITIAL_DATA = {
         { name: "TEAM Ads", score: "0" }, 
         { name: "TEAM Vesselam", score: "2" }, 
         { name: "TEAM Lca", score: "0" },      
-        { name: "TEAM Dmpro", score: "2" },      // GÜNCELLENDİ: Dostmeclisi -> Dmpro
+        { name: "TEAM Dmpro", score: "2" }, 
         { name: "TEAM Legand", score: "0" },     
         { name: "TEAM Dfpro", score: "2" },      
         { name: "TEAM Trebles", score: "0" },    
@@ -24,21 +24,21 @@ const INITIAL_DATA = {
         { name: "TEAM Fofg", score: "0" }, 
         { name: "TEAM Boga", score: "2" }, 
         { name: "TEAM Vesselam", score: "0" }, 
-        { name: "TEAM Dmpro", score: "2" },      // GÜNCELLENDİ: Dostmeclisi -> Dmpro
+        { name: "TEAM Dmpro", score: "2" },      
         { name: "TEAM Dfpro", score: "2" },       
         { name: "TEAM 696", score: "0" }         
     ],
     sf: [
         { name: "TEAM Ndng", score: "1" },         
         { name: "TEAM Boga", score: "2" },         
-        { name: "TEAM Dmpro", score: "2" },      // GÜNCELLENDİ: Skor 2-0 kazandı
-        { name: "TEAM Dfpro", score: "0" }       // GÜNCELLENDİ: Skor 2-0 kaybetti
+        { name: "TEAM Dmpro", score: "2" },      
+        { name: "TEAM Dfpro", score: "0" }       
     ],
     f: [
-        { name: "TEAM Boga", score: "" },         
-        { name: "TEAM Dmpro", score: "" }        // GÜNCELLENDİ: Dmpro Finalde!
+        { name: "TEAM Boga", score: "0" },       // Final skoru girildi
+        { name: "TEAM Dmpro", score: "2" }       // Finali Dmpro kazandı
     ],
-    champ: "Boş"
+    champ: "TEAM Dmpro" // GÜNCELLENDİ: TURNUVA ŞAMPİYONU!
 };
 
 const STORAGE_KEY = "cs16_tournament_data";
@@ -178,7 +178,7 @@ function renderBracket() {
             noteEl.style = 'width: 100%; text-align: center; margin-top: 30px; padding: 10px; color: #9ca3af; font-size: 0.85rem; border-top: 1px solid #374151; font-style: italic;';
             container.appendChild(noteEl);
         }
-        noteEl.innerHTML = '<i class="fas fa-info-circle"></i> Not: Tapro -> Dfpro ve Dostmeclisi -> Dmpro olarak güncellenmiştir.';
+        noteEl.innerHTML = '<i class="fas fa-crown" style="color:gold"></i> TURNUVA SONA ERDİ: Şampiyon TEAM Dmpro! <br><span style="font-size:0.7rem">(Not: Tapro->Dfpro ve Dostmeclisi->Dmpro olarak güncellenmiştir)</span>';
     }
 
     setTimeout(drawLines, 50);
