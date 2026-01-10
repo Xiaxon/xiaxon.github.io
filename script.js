@@ -1,4 +1,4 @@
-// Data State - ŞAMPİYON: TEAM DMPRO
+// Data State - ŞAMPİYON: TEAM DMPRO (Final: 2-1)
 const INITIAL_DATA = {
     r1: [
         { name: "TEAM Champs", score: "0" }, 
@@ -35,10 +35,10 @@ const INITIAL_DATA = {
         { name: "TEAM Dfpro", score: "0" }       
     ],
     f: [
-        { name: "TEAM Boga", score: "0" },       // Final skoru girildi
-        { name: "TEAM Dmpro", score: "2" }       // Finali Dmpro kazandı
+        { name: "TEAM Boga", score: "1" },       // DÜZELTİLDİ: Final skoru 1
+        { name: "TEAM Dmpro", score: "2" }       // Finali Dmpro 2-1 kazandı
     ],
-    champ: "TEAM Dmpro" // GÜNCELLENDİ: TURNUVA ŞAMPİYONU!
+    champ: "TEAM Dmpro"
 };
 
 const STORAGE_KEY = "cs16_tournament_data";
@@ -178,7 +178,7 @@ function renderBracket() {
             noteEl.style = 'width: 100%; text-align: center; margin-top: 30px; padding: 10px; color: #9ca3af; font-size: 0.85rem; border-top: 1px solid #374151; font-style: italic;';
             container.appendChild(noteEl);
         }
-        noteEl.innerHTML = '<i class="fas fa-crown" style="color:gold"></i> TURNUVA SONA ERDİ: Şampiyon TEAM Dmpro! <br><span style="font-size:0.7rem">(Not: Tapro->Dfpro ve Dostmeclisi->Dmpro olarak güncellenmiştir)</span>';
+        noteEl.innerHTML = '<i class="fas fa-crown" style="color:gold"></i> TURNUVA SONA ERDİ: Şampiyon TEAM Dmpro! (Final Skoru: 2-1)';
     }
 
     setTimeout(drawLines, 50);
